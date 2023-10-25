@@ -1,7 +1,8 @@
 module.exports = {
 	'env': {
 		'browser': true,
-		'es2021': true
+		'es2021': true,
+		'node': true
 	},
 	'extends': [
 		'eslint:recommended',
@@ -17,18 +18,9 @@ module.exports = {
 		'@typescript-eslint'
 	],
 	'rules': {
-		'linebreak-style': [
-			'error',
-			'windows'
-		],
-		'quotes': [
-			'error',
-			'single'
-		],
-		'semi': [
-			'error',
-			'always'
-		],
+		'linebreak-style': ['off'],
+		'quotes': ['error', 'single'],
+		'semi': ['error', 'always'],
 		'@typescript-eslint/no-explicit-any': ['off'],
 		'no-empty': ['off']
 	}
