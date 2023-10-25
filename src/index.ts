@@ -21,4 +21,4 @@ async function main() {
 	await client.initialize();
 }
 
-main()
+main();

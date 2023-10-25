@@ -7,8 +7,7 @@ module.exports = {
 		'eslint:recommended',
 		'plugin:@typescript-eslint/recommended'
 	],
-	'overrides': [
-	],
+	'overrides': [],
 	'parser': '@typescript-eslint/parser',
 	'parserOptions': {
 		'ecmaVersion': 'latest',
@@ -30,10 +29,7 @@ module.exports = {
 			'error',
 			'always'
 		],
-		'@typescript-eslint/no-non-null-assertion': ['off'],
-		'@typescript-eslint/no-var-requires': ['off'],
 		'@typescript-eslint/no-explicit-any': ['off'],
-		'@typescript-eslint/no-empty-function': ['off'],
 		'no-empty': ['off']
 	}
 };
