@@ -1,0 +1,22 @@
+{
+  "name": "timetable-bot",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greenbush5/timetable-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/greenbush5/timetable-bot/issues"
+  },
+  "homepage": "https://github.com/greenbush5/timetable-bot#readme",
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "mongoose": "^7.6.3"
+  }
+}
