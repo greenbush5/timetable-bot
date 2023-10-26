@@ -1,13 +1,15 @@
 const prepodSchema = new mongoose.Schema({
 	Name: {
-			type: String,
-		},
+		type: String
+	},
+
 	Id: {
-		type: String,
+		type: String
 	},
+	
 	chanelID: {
-		type: String,
-	},
+		type: String
+	}
 });
 
 module.exports = mongoose.model('prepodi', prepodSchema);

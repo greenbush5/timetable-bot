@@ -1,22 +1,18 @@
 const gryppa = require(`../../models/grypSchema`);
 
-const {
-  MessageActionRow,
-	Modal
-} = require('discord.js');
-
-
 module.exports = {
-  execute(interaction) {
-    const notificationText = interaction.fields.getTextInputValue('yvedId');
-
-		const selectedGroup = await gryppa.findOne({ Name: interaction.client.selectedSubject });
-
+	async execute(interaction) {
+		const notificationText = interaction.fields.getTextInputValue('yvedId');
+		
+		const selectedGroup = await gryppa.findOne({
+			Name: interaction.client.selectedSubject
+		});
+		
 		if (selectedGroup) {
 			const channelString = selectedGroup.yvedomlenie;
 			const channelId = channelString.replace(/\D/g, '');
 			const channel = interaction.guild.channels.cache.get(channelId);
-
+			
 			if (channel) {
 				await channel.send(notificationText);
 				interaction.reply({ content: 'Уведомление успешно отправлено.', ephemeral: true });
@@ -26,5 +22,5 @@ module.exports = {
 		} else {
 			interaction.reply({ content: 'Ошибка: не найдена группа.', ephemeral: true });
 		}
-  },
+	}
 };

@@ -1,29 +1,25 @@
-const plane = require(`../../models/planSchema`);
-
-const {
-  MessageActionRow,
-	Modal,
-	MessageSelectMenu,
-	TextInputComponent
-} = require('discord.js');
-
+const { MessageActionRow, Modal, TextInputComponent } = require('discord.js');
 
 module.exports = {
-  execute(interaction) {
-    const selectedSubject = interaction.values[0];
+	async execute(interaction) {
+		const selectedSubject = interaction.values[0];
+		
+		// Сохраните selectedSubject в контексте взаимодействия
+		interaction.client.selectedSubject = selectedSubject;
+		
+		const modal = new Modal()
+			.setCustomId('HitMod')
+			.setTitle(`Добавить/изменить план:`);
 
-			// Сохраните selectedSubject в контексте взаимодействия
-			interaction.client.selectedSubject = selectedSubject;
+		const favoriteColorInput = new TextInputComponent()
+			.setCustomId('HitId')
+			.setLabel("Введите информацию об учебном плане")
+			.setStyle('PARAGRAPH');
 
-			const modal = new Modal()
-				.setCustomId('HitMod')
-				.setTitle(`Добавить/изменить план:`);
-			const favoriteColorInput = new TextInputComponent()
-				.setCustomId('HitId')
-				.setLabel("Введите информацию об учебном плане")
-				.setStyle('PARAGRAPH');
-			const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
-			modal.addComponents(firstActionRow);
-			await interaction.showModal(modal);
-  },
+		const firstActionRow = new MessageActionRow()
+			.addComponents(favoriteColorInput);
+
+		modal.addComponents(firstActionRow);
+		await interaction.showModal(modal);
+	}
 };
