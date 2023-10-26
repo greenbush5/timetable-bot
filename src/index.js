@@ -90,6 +90,11 @@ const resik = [
   'Деканат',
 ]
 
+const podava = [
+  'Подача заялений',
+  'Получении справки об обучении',
+  'Перевыпуск пропуска',
+]
 
 mongoose.connect(databaseUrl, { useNewUrlParser: true })
   .then(() => console.log('MongoDB запущен'))
@@ -179,6 +184,9 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     date: {
       type: String,
     },
+    kabin: {
+      type: String,
+    },
   });
   
   const red = mongoose.model('red', raspSchema);
@@ -215,6 +223,17 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
   });
   
   const short = mongoose.model('short', shortSchema);
+
+  const podavaSchema = new mongoose.Schema({
+    name: {
+        type: String,
+      },
+    info: {
+      type: String,
+    },
+  });
+  
+  const podanoo = mongoose.model('podan', podavaSchema);
 
   client.on('ready', () => {
     console.log(`ЮХХХУ СВИСТАТЬ ВСЕХ НА ВЕРХ <3 ||Я реально работаю(наверное)!`);
@@ -339,7 +358,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     
           if (schedule.length > 0) {
             const scheduleMessage = schedule.map((entry, index) => {
-              return `**Пара ${index + 1}**:\n📝Предмет: **${entry.name}**.\n😎Преподаватель: **${entry.prepod}**`;
+              return `**Пара ${index + 1}**:\n📝Предмет: **${entry.name}**\n😎Преподаватель: **${entry.prepod}**\n🚪Кабинет: **${entry.kabin}**`;
             }).join('\n');
     
             await interaction.reply({
@@ -374,7 +393,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
       }
     });
 
-     client.on('interactionCreate', async (interaction) => { //учебный план
+    client.on('interactionCreate', async (interaction) => { //учебный план
       if (!interaction.isButton()) return;
     
       if (interaction.customId === 'plan') {
@@ -470,6 +489,53 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
       }
     });
 
+    client.on('interactionCreate', async (interaction) => { // ПОДАТЬ ЗАЯВЛЕНИЕ
+      if (!interaction.isButton()) return;
+    
+      if (interaction.customId === 'podati') {
+    
+        const plansOptions = podava.map((subject) => ({
+          label: subject,
+          value: subject.replace(/ /g, '_').toLowerCase(),
+        }));
+    
+        const subjectsRow = new MessageActionRow().addComponents(
+          new MessageSelectMenu()
+            .setCustomId('qwere')
+            .setPlaceholder('ВЫБОР')
+            .addOptions(plansOptions),
+        );
+    
+        await interaction.reply({
+          content: 'Выберите нужное вам заявление:',
+          components: [subjectsRow],
+          ephemeral: true
+        });
+      } 
+    })
+
+    client.on('interactionCreate', async (interaction) => {// ПОДАТЬ ЗАЯВЛЕНИЕ
+      if (interaction.isSelectMenu()) {
+        if (interaction.customId === 'qwere') {
+          const selectedSubject = interaction.values[0];
+              const foundPlan = await podanoo.findOne({ name: selectedSubject });
+    
+          if (foundPlan) {
+            const embed = new MessageEmbed()
+              .setTitle(`Заявление "${selectedSubject}":`)
+              .setDescription(foundPlan.info)
+              .setColor('#FF1867');
+    
+            await interaction.reply({ embeds: [embed], ephemeral: true});
+          } else {
+            const embed1 = new MessageEmbed()
+            .setTitle(`Заявление "${selectedSubject}" не найдено.`)
+            .setColor('#FF1867');
+            await interaction.reply({ embeds: [embed1], ephemeral: true});
+          }
+        }
+      }
+    });
 
   }
 
@@ -495,21 +561,28 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
       .setCustomId('reshim')
       .setLabel('РЕЖИМ РАБОТЫ')
       .setStyle('SUCCESS');
+
+    const But5 = new MessageButton()
+      .setCustomId('poddav')
+      .setLabel('ПОДАЧА ЗАЯВЛЕНИЙ')
+      .setStyle('SUCCESS');
   
     const com1 = new MessageActionRow()
-      .addComponents(But, But2, But3, But4);
+      .addComponents(But, But2);
+
+    const com2 = new MessageActionRow()
+      .addComponents(But3, But4, But5);
   
     const mes = new MessageEmbed()
       .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
       .setDescription('Нажмите **ДОБАВИТЬ РАСПИСАНИЕ** что бы добавить расписание.\nНажмите **УВЕДОМЛЕНИЕ** что бы прислать изменение расписания/оправить ведомление.\nНажмите **УЧЕБНЫЙ ПЛАН** что отредактировать/добавить учебный план')
       .setColor('#DE5EB4');
  
-   // const message = await channel.send({ embeds: [mes], components: [com1] });
+   // const message = await channel.send({ embeds: [mes], components: [com1, com2] });
 
-  
    const dataMap = new Map();
 
-   client.on('interactionCreate', async (interaction) => { //РАСПИСАНИЕ
+   client.on('interactionCreate', async (interaction) => {
      if (!interaction.isButton() && !interaction.isSelectMenu()) return;
    
      const user = interaction.user;
@@ -588,7 +661,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
        });
      }
    });
-   
+  
    async function saveToDatabase(user, interaction) { //РАСПИСАНИЕ
     const userData = dataMap.get(user.id);
     if (
@@ -598,13 +671,147 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
       userData.prepod &&
       userData.date
     ) {
-      // Check if a record with the same data exists
+      const cabinetModal = new MessageActionRow().addComponents(
+        new MessageButton()
+          .setCustomId('cabinetModal')
+          .setLabel('Ввести номер кабинета')
+          .setStyle('PRIMARY')
+      );
+
+      await interaction.followUp({
+        content: 'Для продолжения, введите номер кабинета:',
+        components: [cabinetModal],
+        ephemeral: true,
+      });
+    }
+  }
+
+  
+  const messages = {}
+
+client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
+    if (!interaction.isSelectMenu()) return;
+  
+    const user = interaction.user;
+    const userData = dataMap.get(user.id);
+    if (interaction.customId === 'classADD') {
+      const selectedGroup = interaction.values[0];
+      dataMap.get(user.id).groop = selectedGroup;
+      if(messages[user.id]) {
+				const message = messages[user.id]
+     const iterek = await message.edit({
+       content: 'Группа успешно принята',
+       ephemeral: true,
+      })
+     } else {
+       const iterek = await interaction.reply({
+         content: 'Группа успешно принята',
+         ephemeral: true,
+        })
+      messages[user.id] = iterek;
+     }
+    }else if (interaction.customId === 'numberADD') {
+            const selectedNumber = interaction.values[0];
+            console.log(`Выбран номер пары: ${selectedNumber}`);
+            dataMap.get(user.id).nomer = selectedNumber;
+            if(messages[user.id]) {
+           const iterek = await interaction.editReply({
+             content: 'Группа успешно принята',
+             ephemeral: true,
+            })
+           } else {
+             const iterek = await interaction.reply({
+               content: 'Группа успешно принята',
+               ephemeral: true,
+              })
+            messages[user.id] = iterek;
+           }
+          } else if (interaction.customId === 'subjectiiADD') {
+            const selectedSubject = interaction.values[0];
+            console.log(`Выбран предмет: ${selectedSubject}`);
+            dataMap.get(user.id).name = selectedSubject;     
+            if(messages[user.id]) {
+           const iterek = await interaction.editReply({
+             content: 'Группа успешно принята',
+             ephemeral: true,
+            })
+            messages[user.id] = iterek;
+           } else {
+             const iterek = await interaction.reply({
+               content: 'Группа успешно принята',
+               ephemeral: true,
+              })
+            messages[user.id] = iterek;
+           }
+          } else if (interaction.customId === 'prepodiiADD') {
+            const selectedPrepod = interaction.values[0];
+            console.log(`Выбран преподаватель: ${selectedPrepod}`);
+            dataMap.get(user.id).prepod = selectedPrepod;
+            if(messages[user.id]) {
+           const iterek = await interaction.editReply({
+             content: 'Группа успешно принята',
+             ephemeral: true,
+            })
+            messages[user.id] = iterek;
+           } else {
+             const iterek = await interaction.reply({
+               content: 'Группа успешно принята',
+               ephemeral: true,
+              })
+            messages[user.id] = iterek;
+           }
+          } else if (interaction.customId === 'dateADD') {
+            const selectedDate = interaction.values[0];
+            if(messages[user.id]) {
+           const iterek = await interaction.editReply({
+             content: 'Группа успешно принята',
+             ephemeral: true,
+            })
+           } else {
+             const iterek = await interaction.reply({
+               content: 'Группа успешно принята',
+               ephemeral: true,
+              })
+            messages[user.id] = iterek;
+           }
+            console.log(`Выбрана дата: ${selectedDate}`);
+            dataMap.get(user.id).date = selectedDate;
+  }
+  
+    saveToDatabase(user, interaction);
+  });
+
+  client.on('interactionCreate', async (interaction) => {
+    if (interaction.customId === 'cabinetModal') {
+      const modal = new Modal()
+      .setCustomId('cabinetMod')
+      .setTitle(`Добавить кабинет:`);
+    const favoriteColorInput = new TextInputComponent()
+      .setCustomId('cabinetId')
+      .setLabel("Введите иномер кабинета")
+      .setStyle('SHORT');
+    const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
+    modal.addComponents(firstActionRow);
+    await interaction.showModal(modal);
+    }
+  });
+  
+  client.on('interactionCreate', async (interaction) => { //РАСПИСАНИЕ
+    if (!interaction.isModalSubmit()) return;
+  
+    if (interaction.customId === 'cabinetMod') {
+      const user = interaction.user;
+      const userData = dataMap.get(user.id);
+      const info = interaction.fields.getTextInputValue('cabinetId');
+      dataMap.get(user.id).class = info;
+
       const existingRed = await red.findOne({
         groop: userData.groop,
         nomer: userData.nomer,
         name: userData.name,
         prepod: userData.prepod,
         date: userData.date,
+        kabin: userData.class
       });
   
       if (existingRed) {
@@ -615,6 +822,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
             name: userData.name,
             prepod: userData.prepod,
             date: userData.date,
+            kabin: userData.class
           },
           { /* Твой сматфон не звонил бы, чёрт возьми, еслиб прогрмаммисты были бы нормальными людьми) */ }
         );
@@ -625,114 +833,20 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           name: userData.name,
           prepod: userData.prepod,
           date: userData.date,
+          kabin: userData.class
         });
         await newRed.save();
       }
   
       dataMap.delete(user.id);
   
-      await interaction.editReply({
+      await interaction.reply({
         content: `*Расписание успешно добавленно для группы ${userData.groop}, можете создавать новое добавление **<3***`,
         ephemeral: true,
     })
+
     }
-  }
-   
-   client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
-     if (!interaction.isSelectMenu()) return;
-   
-     const user = interaction.user;
-     const userData = dataMap.get(user.id);
-     if (interaction.customId === 'classADD') {
-       const selectedGroup = interaction.values[0];
-       dataMap.get(user.id).groop = selectedGroup;
-       const popp = userData.iterek
-       if(popp) {
-      const iterek = await interaction.editReply({
-        content: 'Группа успешно принята',
-        ephemeral: true,
-       })
-      } else {
-        const iterek = await interaction.reply({
-          content: 'Группа успешно принята',
-          ephemeral: true,
-         })
-       dataMap.get(user.id).iterek = iterek;
-      }
-     }else if (interaction.customId === 'numberADD') {
-             const selectedNumber = interaction.values[0];
-             console.log(`Выбран номер пары: ${selectedNumber}`);
-             dataMap.get(user.id).nomer = selectedNumber;
-             const popp = dataMap.get(user.id).intwek
-             if(popp) {
-            const iterek = await interaction.editReply({
-              content: 'Группа успешно принята',
-              ephemeral: true,
-             })
-            } else {
-              const iterek = await interaction.reply({
-                content: 'Группа успешно принята',
-                ephemeral: true,
-               })
-             dataMap.get(user.id).iterek = iterek;
-            }
-           } else if (interaction.customId === 'subjectiiADD') {
-             const selectedSubject = interaction.values[0];
-             console.log(`Выбран предмет: ${selectedSubject}`);
-             dataMap.get(user.id).name = selectedSubject;     
-             const popp = dataMap.get(user.id).intwek
-             if(popp) {
-            const iterek = await interaction.editReply({
-              content: 'Группа успешно принята',
-              ephemeral: true,
-             })
-             dataMap.get(user.id).iterek = iterek;
-            } else {
-              const iterek = await interaction.reply({
-                content: 'Группа успешно принята',
-                ephemeral: true,
-               })
-             dataMap.get(user.id).iterek = iterek;
-            }
-           } else if (interaction.customId === 'prepodiiADD') {
-             const selectedPrepod = interaction.values[0];
-             console.log(`Выбран преподаватель: ${selectedPrepod}`);
-             dataMap.get(user.id).prepod = selectedPrepod;
-             const popp = userData.iterek
-             if(popp) {
-            const iterek = await interaction.editReply({
-              content: 'Группа успешно принята',
-              ephemeral: true,
-             })
-             dataMap.get(user.id).iterek = iterek;
-            } else {
-              const iterek = await interaction.reply({
-                content: 'Группа успешно принята',
-                ephemeral: true,
-               })
-             dataMap.get(user.id).iterek = iterek;
-            }
-           } else if (interaction.customId === 'dateADD') {
-             const selectedDate = interaction.values[0];
-             const popp = userData.iterek
-             if(popp) {
-            const iterek = await interaction.editReply({
-              content: 'Группа успешно принята',
-              ephemeral: true,
-             })
-            } else {
-              const iterek = await interaction.reply({
-                content: 'Группа успешно принята',
-                ephemeral: true,
-               })
-             dataMap.get(user.id).iterek = iterek;
-            }
-             console.log(`Выбрана дата: ${selectedDate}`);
-             dataMap.get(user.id).date = selectedDate;
-   }
-   
-     saveToDatabase(user, interaction);
-   });
+  });
       
 
       client.on('interactionCreate', async (interaction) => { //учебный план
@@ -934,6 +1048,74 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
             await interaction.update('Успешно сохранено');
           } else {
             const newPlan = new resiki({
+              name: selectedSubject,
+              info: info,
+            });
+            await newPlan.save();
+            await interaction.update('Успешно сохранено');
+          }
+        }
+      });
+
+      client.on('interactionCreate', async (interaction) => { //ПОДАТЬ ЗАЯВЛЕНИЕ
+        if (!interaction.isButton()) return;
+      
+        if (interaction.customId === 'poddav') {
+      
+          const plansOptions = podava.map((subject) => ({
+            label: subject,
+            value: subject.replace(/ /g, '_').toLowerCase(),
+          }));
+      
+          const subjectsRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('podavaADD')
+              .setPlaceholder('РАЗДЕЛ')
+              .addOptions(plansOptions),
+          );
+      
+          await interaction.reply({
+            content: 'Выберите желаемый раздел:',
+            components: [subjectsRow],
+            ephemeral: true
+          });
+        } 
+      })
+
+      client.on('interactionCreate', async (interaction) => { //ПОДАТЬ ЗАЯВЛЕНИЕ
+        if (interaction.customId === 'podavaADD') {
+          const selectedSubject = interaction.values[0];
+      
+          interaction.client.selectedSubject = selectedSubject;
+      
+          const modal = new Modal()
+            .setCustomId('podavaMod')
+            .setTitle(`Добавить/изменить раздел:`);
+          const favoriteColorInput = new TextInputComponent()
+            .setCustomId('podavaId')
+            .setLabel("Введите информацию нужную информацию")
+            .setStyle('PARAGRAPH');
+          const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
+          modal.addComponents(firstActionRow);
+          await interaction.showModal(modal);
+        }
+      });
+      
+      client.on('interactionCreate', async (interaction) => {//ПОДАТЬ ЗАЯВЛЕНИЕ
+        if (!interaction.isModalSubmit()) return;
+      
+        if (interaction.customId === 'podavaMod') {
+          const info = interaction.fields.getTextInputValue('podavaId');
+          const selectedSubject = interaction.client.selectedSubject;
+      
+          const existingPlan = await podan.findOne({ name: selectedSubject });
+      
+          if (existingPlan) {
+            existingPlan.info = info;
+            await existingPlan.save();
+            await interaction.update('Успешно сохранено');
+          } else {
+            const newPlan = new podan({
               name: selectedSubject,
               info: info,
             });
