@@ -2,9 +2,13 @@
 	"name": "timetable-bot",
 	"version": "0.0.1",
 	"description": "",
-	"main": "src/index.js",
+	"main": "build/index.js",
 	"private": true,
-	"scripts": {},
+	"scripts": {
+		"build": "tsc",
+		"dev": "ts-node src/index.ts",
+		"prod": "node ."
+	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/greenbush5/timetable-bot.git"
@@ -19,5 +23,8 @@
 	"dependencies": {
 		"discord.js": "^13.16.0",
 		"mongoose": "^7.6.3"
+	},
+	"devDependencies": {
+		"ts-node": "^10.9.1"
 	}
 }
