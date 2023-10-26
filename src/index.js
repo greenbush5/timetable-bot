@@ -29,8 +29,8 @@ const client = new Discord.Client({
   }
 });
 
+const { token, databaseUrl } = require('./secrets');
 
-const token = 'MTE2NjczNTM3MTExNjIyMDUxNw.Gkl94u.l9oClJqqKIuxN5CfcL7SngGxkzuZNAnWDF8uxc';
 const GUILD_ID = '1166726020481679400';
 const adminID = '1166726152262537238';
 const groopID = '1166759868519157821';
@@ -91,22 +91,13 @@ const resik = [
   'Деканат',
 ]
 
-const saivlenia = [
-  'Вступление в профсоюз',
-  'Отчисление',
-  'Заявление об отсутствии на парах',
-  'Заявка об переносе пар',
-  'Выходные за свой счёт',
-  'Увольнение',
-]
-
 const podava = [
   'Подача заялений',
   'Получении справки об обучении',
   'Перевыпуск пропуска',
 ]
 
-mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true })
+mongoose.connect(databaseUrl, { useNewUrlParser: true })
   .then(() => console.log('MongoDB запущен'))
   .catch(err => console.error('MongoDB ошибка:', err));
 
@@ -237,17 +228,6 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
   
   const short = mongoose.model('short', shortSchema);
 
-  const shortteaSchema = new mongoose.Schema({
-    DS: {
-        type: String,
-      },
-    groop: {
-      type: String,
-    },
-  });
-  
-  const shorttea = mongoose.model('shorttea', shortteaSchema);
-
   const podavaSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -258,17 +238,6 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
   });
   
   const podanoo = mongoose.model('podan', podavaSchema);
-
-  const skasSchema = new mongoose.Schema({
-    name: {
-        type: String,
-      },
-    info: {
-      type: String,
-    },
-  });
-  
-  const skas = mongoose.model('skas', skasSchema);
 
   client.on('ready', () => {
     console.log(`ЮХХХУ СВИСТАТЬ ВСЕХ НА ВЕРХ <3 ||Я реально работаю(наверное)!`);
@@ -335,7 +304,7 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
   
      // const message = await channel.send({ embeds: [mes], components: [com1, com2, com3] });
 
-     client.on('interactionCreate', async (interaction) => { // МОЁ РАСПИСАНИЕ
+     client.on('interactionCreate', async (interaction) => {
       if (!interaction.isButton()) return;
     
       if (interaction.customId === 'mayraspis') { //СЮДА
@@ -602,7 +571,7 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
       }
     });
 
-    client.on('interactionCreate', async (interaction) => {// ОБЩЕЕ РАСПИСАНИЕ
+    client.on('interactionCreate', async (interaction) => {// МОЁ РАСПИСАНИЕ
       if (interaction.customId === 'ADDrasp') {
         const selectPred = interaction.values[0];
 
@@ -627,7 +596,9 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
       }
     });
 
-    client.on('interactionCreate', async (interaction) => {// ОБЩЕЕ РАСПИСАНИЕ
+
+
+    client.on('interactionCreate', async (interaction) => {// МОЁ РАСПИСАНИЕ
       if (interaction.customId === 'obwrasikADD') {
         const selectedDate = interaction.values[0];
         const selectPred = interaction.client.selectPred;
@@ -654,136 +625,6 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
         }
       }
     });
-
-    client.on('interactionCreate', async (interaction) => { // ПОИСК УЧИТЕЛЕЙ
-      if (!interaction.isButton()) return;
-    
-      if (interaction.customId === 'raspisPREP') { 
-
-          const grypy = await prepod.find({}, 'Name');
-    
-          const grypaOptions = grypy.map((grypa) => ({
-            label: grypa.Name,
-            value: grypa.Name,
-          }));
-    
-          const grypaRow = new MessageActionRow().addComponents(
-            new MessageSelectMenu()
-              .setCustomId('prepodSEARCH')
-              .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
-              .addOptions(grypaOptions),
-          );
-    
-          await interaction.reply({
-            content: 'Выберите преподавателя:',
-            components: [grypaRow],
-            ephemeral: true,
-          });
-        
-      }
-    });
-
-    client.on('interactionCreate', async (interaction) => {// ПОИСК УЧИТЕЛЕЙ
-      if (interaction.customId === 'prepodSEARCH') {
-        const selectPred = interaction.values[0];
-
-        interaction.client.selectPred = selectPred;
-
-        const dateOptions = getFutureDates(7).map((date) => ({
-          label: date,
-          value: date,
-        }));
-
-          const dateRow = new MessageActionRow().addComponents(
-            new MessageSelectMenu()
-              .setCustomId('obwrasikSEARCH')
-              .setPlaceholder('ДАТА')
-              .addOptions(dateOptions),
-          );
-          await interaction.reply({
-            content: 'На какую дату вы хотите получить расписание?',
-            components: [dateRow],
-            ephemeral: true,
-          });
-      }
-    });
-
-    client.on('interactionCreate', async (interaction) => {// ПОИСК УЧИТЕЛЕЙ
-      if (interaction.customId === 'obwrasikSEARCH') {
-        const selectedDate = interaction.values[0];
-        const selectPred = interaction.client.selectPred;
-    
-          const schedule = await red.find({
-            prepod: selectPred,
-            date: selectedDate,
-          });
-    
-          if (schedule.length > 0) {
-            const scheduleMessage = schedule.map((entry, index) => {
-              return `**Пара ${entry.nomer}**:\n💡Группа: **${entry.groop}**\n📝Предмет: **${entry.name}**\n🚪Кабинет: **${entry.kabin}**`;
-            }).join('\n');
-    
-            await interaction.reply({
-              content: `🌠**Расписание на ${selectedDate} для группы ${selectPred}:**🌠\n${scheduleMessage}`,
-              ephemeral: true,
-            });
-          } else {
-            await interaction.reply({
-              content: `⛔На **${selectedDate}** для группы ${selectPred} **расписание отсутствует.**⛔`,
-              ephemeral: true,
-            });
-        }
-      }
-    });
-
-    client.on('interactionCreate', async (interaction) => { // СКАЧАТЬ ЗАЯВЛЕНИЕ
-      if (!interaction.isButton()) return;
-    
-      if (interaction.customId === 'ska4') {
-    
-        const plansOptions = saivlenia.map((subject) => ({
-          label: subject,
-          value: subject.replace(/ /g, '_').toLowerCase(),
-        }));
-    
-        const subjectsRow = new MessageActionRow().addComponents(
-          new MessageSelectMenu()
-            .setCustomId('ystan')
-            .setPlaceholder('ВЫБОР')
-            .addOptions(plansOptions),
-        );
-    
-        await interaction.reply({
-          content: 'Выберите нужное вам заявление:',
-          components: [subjectsRow],
-          ephemeral: true
-        });
-      } 
-    })
-
-    client.on('interactionCreate', async (interaction) => {// СКАЧАТЬ ЗАЯВЛЕНИЕ
-      if (interaction.isSelectMenu()) {
-        if (interaction.customId === 'ystan') {
-          const selectedSubject = interaction.values[0];
-              const foundPlan = await skas.findOne({ name: selectedSubject });
-    
-          if (foundPlan) {
-            const embed = new MessageEmbed()
-              .setTitle(`Заявление "${selectedSubject}":`)
-              .setDescription(foundPlan.info)
-              .setColor('#FF1867');
-    
-            await interaction.reply({ embeds: [embed], ephemeral: true});
-          } else {
-            const embed1 = new MessageEmbed()
-            .setTitle(`Заявление "${selectedSubject}" не найдено.`)
-            .setColor('#FF1867');
-            await interaction.reply({ embeds: [embed1], ephemeral: true});
-          }
-        }
-      }
-    });
-
 
   }
 
@@ -819,17 +660,12 @@ mongoose.connect('mongodb+srv://g92836142:l9oRe3To4DHKjUSF@cluster0.k2u2e3g.mong
       .setCustomId('poddav')
       .setLabel('ПОДАЧА ЗАЯВЛЕНИЙ')
       .setStyle('SUCCESS');
-
-    const But7 = new MessageButton()
-      .setCustomId('skasred')
-      .setLabel('СКАЧАТЬ ЗАЯВЛЕНИЕ')
-      .setStyle('SUCCESS');
   
     const com1 = new MessageActionRow()
       .addComponents(But, But2, But6);
 
     const com2 = new MessageActionRow()
-      .addComponents(But3, But4, But5, But7);
+      .addComponents(But3, But4, But5);
   
     const mes = new MessageEmbed()
       .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
@@ -1453,75 +1289,6 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           }
         }
       });
-
-      client.on('interactionCreate', async (interaction) => { //СКАЧАТЬ ЗАЯВЛЕНИЕ
-        if (!interaction.isButton()) return;
-      
-        if (interaction.customId === 'skasred') {
-      
-          const plansOptions = saivlenia.map((subject) => ({
-            label: subject,
-            value: subject.replace(/ /g, '_').toLowerCase(),
-          }));
-      
-          const subjectsRow = new MessageActionRow().addComponents(
-            new MessageSelectMenu()
-              .setCustomId('saivleniaADD')
-              .setPlaceholder('РАЗДЕЛ')
-              .addOptions(plansOptions),
-          );
-      
-          await interaction.reply({
-            content: 'Выберите желаемый раздел:',
-            components: [subjectsRow],
-            ephemeral: true
-          });
-        } 
-      })
-
-      client.on('interactionCreate', async (interaction) => { //СКАЧАТЬ ЗАЯВЛЕНИЕ
-        if (interaction.customId === 'saivleniaADD') {
-          const selectedSubject = interaction.values[0];
-      
-          interaction.client.selectedSubject = selectedSubject;
-      
-          const modal = new Modal()
-            .setCustomId('saivleniaMod')
-            .setTitle(`Добавить/изменить раздел:`);
-          const favoriteColorInput = new TextInputComponent()
-            .setCustomId('saivleniaId')
-            .setLabel("Передаставте ссылку на скачивание/информацию")
-            .setStyle('PARAGRAPH');
-          const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
-          modal.addComponents(firstActionRow);
-          await interaction.showModal(modal);
-        }
-      });
-      
-      client.on('interactionCreate', async (interaction) => {//СКАЧАТЬ ЗАЯВЛЕНИЕ
-        if (!interaction.isModalSubmit()) return;
-      
-        if (interaction.customId === 'saivleniaMod') {
-          const info = interaction.fields.getTextInputValue('saivleniaId');
-          const selectedSubject = interaction.client.selectedSubject;
-      
-          const existingPlan = await skas.findOne({ name: selectedSubject });
-      
-          if (existingPlan) {
-            existingPlan.info = info;
-            await existingPlan.save();
-            await interaction.update('Успешно сохранено');
-          } else {
-            const newPlan = new skas({
-              name: selectedSubject,
-              info: info,
-            });
-            await newPlan.save();
-            await interaction.update('Успешно сохранено');
-          }
-        }
-      });
-      
   }
 
   async function sendControlADM() {
@@ -1999,6 +1766,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
    }
 
    async function sendControl() {
+    // const channel = await client.channels.fetch(channelAKK);
      const control = await client.channels.fetch(chenelPREP);
  
      const ip = new MessageButton()
@@ -2019,103 +1787,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
          .setDescription('')
          .setColor('#B82923');
  
-      // const message = await control.send({ embeds: [mes], components: [com] });
-
-        client.on('interactionCreate', async (interaction) => { // МОЁ РАСПИСАНИЕ
-          if (!interaction.isButton()) return;
-        
-          if (interaction.customId === 'prepraspis') { 
-            const user = await shorttea.findOne({ DS: interaction.user.id });
-        
-            if (user) {
-              const dateOptions = getFutureDates(7).map((date) => ({
-                label: date,
-                value: date,
-              }));
-    
-              const dateRow = new MessageActionRow().addComponents(
-                new MessageSelectMenu()
-                  .setCustomId('teachshort')
-                  .setPlaceholder('ДАТА')
-                  .addOptions(dateOptions),
-              );
-              await interaction.reply({
-                content: 'На какую дату вы хотите получить расписание?',
-                components: [dateRow],
-                ephemeral: true,
-              });
-            } else {
-              const grypy = await prepod.find({}, 'Name');
-        
-              const grypaOptions = grypy.map((grypa) => ({
-                label: grypa.Name,
-                value: grypa.Name,
-              }));
-        
-              const grypaRow = new MessageActionRow().addComponents(
-                new MessageSelectMenu()
-                  .setCustomId('mayteach')
-                  .setPlaceholder('ГРУППА')
-                  .addOptions(grypaOptions),
-              );
-        
-              await interaction.reply({
-                content: 'Вы не зарегистрированы. Выберите вашу фамилию:',
-                components: [grypaRow],
-                ephemeral: true,
-              });
-            }
-          }
-        });
-    
-        client.on('interactionCreate', async (interaction) => {// МОЁ РАСПИСАНИЕ
-          if (interaction.customId === 'teachshort') {
-            const selectedDate = interaction.values[0];
-            const user = await shorttea.findOne({ DS: interaction.user.id });
-            const test = user.groop
-        
-            if (user) {
-              const schedule = await red.find({
-                prepod: test,
-                date: selectedDate,
-              });
-
-              if (schedule.length > 0) {
-                const scheduleMessage = schedule.map((entry, index) => {
-                  return `**Пара ${entry.nomer}**:\n💡Группа: **${entry.groop}**\n📝Предмет: **${entry.name}**\n🚪Кабинет: **${entry.kabin}**`;
-                }).join('\n');
-        
-                await interaction.reply({
-                  content: `🌠**Расписание на ${selectedDate} для группы ${user.groop}:**🌠\n${scheduleMessage}`,
-                  ephemeral: true,
-                });
-              } else {
-                await interaction.reply({
-                  content: `⛔На **${selectedDate}** для группы ${user.groop} **расписание отсутствует.**⛔`,
-                  ephemeral: true,
-                });
-              }
-            }
-          }
-        });
-    
-        client.on('interactionCreate', async (interaction) => {// МОЁ РАСПИСАНИЕ
-          if (interaction.isSelectMenu()) {
-            if (interaction.customId === 'mayteach') {
-              const selectedGroup = interaction.values[0];
-          
-              await shorttea.create({
-                DS: interaction.user.id,
-                groop: selectedGroup,
-              });
-          
-              await interaction.reply({
-                content: `Вы зарегистрированы с фамилией: ${selectedGroup}, что бы получить расписание повторите запрос.`,
-                ephemeral: true,
-              });
-            }
-          }
-        });
+        // const message = await control.send({ embeds: [mes], components: [com] });
  
         client.on('interactionCreate', async (interaction) => { //Уведомление ГРУППЫ
           if (!interaction.isButton()) return;
@@ -2187,8 +1859,6 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             }
           }
         });
-
-        
  
    }
 
