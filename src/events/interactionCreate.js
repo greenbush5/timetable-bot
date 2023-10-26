@@ -29,7 +29,7 @@ module.exports = {
 			}
 		}
 		
-		if (interaction.isModalSubmit()){
+		if (interaction.isModalSubmit()) {
 			const { customId } = interaction;
 
 			try {
