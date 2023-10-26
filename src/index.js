@@ -37,7 +37,8 @@ const groopID = '1166759868519157821';
 const glavId = `1166818230749380711`;
 const redId = `1166838868033683566`;
 const guild = '1166726020481679400';
-const kitIDholy = '1135861027146309716';
+const prepodID = '1166745752278671370';
+
 
 const roleIdPrepod = '1166745752278671370';
 
@@ -75,10 +76,18 @@ const plans = [
   '«Информационные системы и программирование»',
   '«Обеспечение информационной безопасности телекоммуникационных систем»',
   '«Обеспечение информационной безопасности автоматизированных систем»',
-  '	«Инфокоммуникационные сети и системы связи»',
+  '«Инфокоммуникационные сети и системы связи»',
   '«Экономика и бухгалтерский учёт (по отраслям)»',
   '«Коммерция (по отраслям)»',
   '«Банковское дело»'
+]
+
+const resik = [
+  'Медпункт',
+  'Военкомат',
+  'Кафедра',
+  'Бухгалтерия',
+  'Деканат',
 ]
 
 
@@ -90,6 +99,9 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     Name: {
         type: String,
       },
+    IDis: {
+        type: String,
+    },
     RoleID: {
         type: String,
     },
@@ -182,6 +194,28 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
   
   const plane = mongoose.model('plane', planSchema);
 
+  const resikSchema = new mongoose.Schema({
+    name: {
+        type: String,
+      },
+    info: {
+      type: String,
+    },
+  });
+  
+  const resiki = mongoose.model('resik', resikSchema);
+
+  const shortSchema = new mongoose.Schema({
+    DS: {
+        type: String,
+      },
+    groop: {
+      type: String,
+    },
+  });
+  
+  const short = mongoose.model('short', shortSchema);
+
   client.on('ready', () => {
     console.log(`ЮХХХУ СВИСТАТЬ ВСЕХ НА ВЕРХ <3 ||Я реально работаю(наверное)!`);
     sendControlADM()
@@ -219,30 +253,221 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         .setLabel('ПОДАТЬ ЗАЯВЛЕНИЕ')
         .setStyle('PRIMARY');
 
-    const Xop = new MessageButton()
+    const Ton2 = new MessageButton()
         .setCustomId('ska4')
         .setLabel('СКАЧАТЬ ЗАЯВЛЕНИЕ')
+        .setStyle('PRIMARY');
+
+    const Xop = new MessageButton()
+        .setCustomId('mayraspis')
+        .setLabel('МОЁ РАСПИСАНИЕ')
         .setStyle('DANGER');
   
     const com1 = new MessageActionRow()
         .addComponents(But, But1, But2);
     
     const com2 = new MessageActionRow()
-        .addComponents(Ton, Ton1);
+        .addComponents(Ton, Ton1, Ton2);
     
     const com3 = new MessageActionRow()
         .addComponents(Xop);
   
     const mes = new MessageEmbed()
         .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
-        .setDescription('Нажми на **РАСПИСАНИЕ** Что бы получить расписание пар.\nНажмите **РАСПИСАНИЕ ПРЕП.** Что быузнать расписание преподавателя.\nНажмите **УЧЕБНЫЙ ПЛАН** Что бы узнать учебный план для нужной вам специальности.\nНажмите на **РЕЖИМ РАБОТЫ** Что бы узнать расписание и контактную информацию административных отделений (бухгалтерия, кафедра, медпункт и тд.).\nНажимите **ПОДАТЬ ЗАЯВЛЕНИЕ** Что бы получить информацию о падаче заявлений, получении справок перевыпуск пропусков и т.д..\nНажмите **СКАЧАТЬ ЗАЯВЛЕНИЕ** Что бы получть форму заявлений или пояснительныйх записок:')
+        .setDescription('Нажми на **МОЁ РАСПИСАНИЕ** Что бы получить ваше расписание пар.\nНажми на **РАСПИСАНИЕ** Что бы получить расписание пар любой группы.\nНажмите **РАСПИСАНИЕ ПРЕП.** Что быузнать расписание преподавателя.\nНажмите **УЧЕБНЫЙ ПЛАН** Что бы узнать учебный план для нужной вам специальности.\nНажмите на **РЕЖИМ РАБОТЫ** Что бы узнать расписание и контактную информацию административных отделений (бухгалтерия, кафедра, медпункт и тд.).\nНажимите **ПОДАТЬ ЗАЯВЛЕНИЕ** Что бы получить информацию о падаче заявлений, получении справок перевыпуск пропусков и т.д..\nНажмите **СКАЧАТЬ ЗАЯВЛЕНИЕ** Что бы получть форму заявлений или пояснительныйх записок:')
         .setColor('#DE5EB4');
   
      // const message = await channel.send({ embeds: [mes], components: [com1, com2, com3] });
 
-    client.on('interactionCreate', async (interaction) => {
+     client.on('interactionCreate', async (interaction) => {
       if (!interaction.isButton()) return;
-  
+    
+      if (interaction.customId === 'mayraspis') { //СЮДА
+        const user = await short.findOne({ DS: interaction.user.id });
+    
+        if (user) {
+          const dateOptions = getFutureDates(7).map((date) => ({
+            label: date,
+            value: date,
+          }));
+
+          const dateRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('rasikADD')
+              .setPlaceholder('ДАТА')
+              .addOptions(dateOptions),
+          );
+          await interaction.reply({
+            content: 'На какую дату вы хотите получить расписание?',
+            components: [dateRow],
+            ephemeral: true,
+          });
+        } else {
+          const grypy = await gryppa.find({}, 'Name');
+    
+          const grypaOptions = grypy.map((grypa) => ({
+            label: grypa.Name,
+            value: grypa.Name,
+          }));
+    
+          const grypaRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('mayrasp')
+              .setPlaceholder('ГРУППА')
+              .addOptions(grypaOptions),
+          );
+    
+          await interaction.reply({
+            content: 'Вы не зарегистрированы. Выберите вашу группу:',
+            components: [grypaRow],
+            ephemeral: true,
+          });
+        }
+      }
+    });
+
+    client.on('interactionCreate', async (interaction) => {// МОЁ РАСПИСАНИЕ
+      if (interaction.customId === 'rasikADD') {
+        const selectedDate = interaction.values[0];
+        const user = await short.findOne({ DS: interaction.user.id });
+    
+        if (user) {
+          const schedule = await red.find({
+            groop: user.groop,
+            date: selectedDate,
+          });
+    
+          if (schedule.length > 0) {
+            const scheduleMessage = schedule.map((entry, index) => {
+              return `**Пара ${index + 1}**:\n📝Предмет: **${entry.name}**.\n😎Преподаватель: **${entry.prepod}**`;
+            }).join('\n');
+    
+            await interaction.reply({
+              content: `🌠**Расписание на ${selectedDate} для группы ${user.groop}:**🌠\n${scheduleMessage}`,
+              ephemeral: true,
+            });
+          } else {
+            await interaction.reply({
+              content: `⛔На **${selectedDate}** для группы ${user.groop} **расписание отсутствует.**⛔`,
+              ephemeral: true,
+            });
+          }
+        }
+      }
+    });
+
+    client.on('interactionCreate', async (interaction) => {// МОЁ РАСПИСАНИЕ
+      if (interaction.isSelectMenu()) {
+        if (interaction.customId === 'mayrasp') {
+          const selectedGroup = interaction.values[0];
+      
+          await short.create({
+            DS: interaction.user.id,
+            groop: selectedGroup,
+          });
+      
+          await interaction.reply({
+            content: `Вы зарегистрированы с группой: ${selectedGroup}, что бы получить расписание повторите запрос.`,
+            ephemeral: true,
+          });
+        }
+      }
+    });
+
+     client.on('interactionCreate', async (interaction) => { //учебный план
+      if (!interaction.isButton()) return;
+    
+      if (interaction.customId === 'plan') {
+    
+        const plansOptions = plans.map((subject) => ({
+          label: subject,
+          value: subject.replace(/ /g, '_').toLowerCase(),
+        }));
+    
+        const subjectsRow = new MessageActionRow().addComponents(
+          new MessageSelectMenu()
+            .setCustomId('xzff')
+            .setPlaceholder('ПРЕДМЕТ')
+            .addOptions(plansOptions),
+        );
+    
+        await interaction.reply({
+          content: 'Выберите нужный вам план:',
+          components: [subjectsRow],
+          ephemeral: true
+        });
+      } 
+    })
+
+    client.on('interactionCreate', async (interaction) => {//учебный план
+      if (interaction.isSelectMenu()) {
+        if (interaction.customId === 'xzff') {
+          const selectedSubject = interaction.values[0];
+              const foundPlan = await plane.findOne({ name: selectedSubject });
+    
+          if (foundPlan) {
+            const embed = new MessageEmbed()
+              .setTitle(`Учебный план "${selectedSubject}":`)
+              .setDescription(foundPlan.info)
+              .setColor('#FF1867');
+    
+            await interaction.reply({ embeds: [embed], ephemeral: true});
+          } else {
+            const embed1 = new MessageEmbed()
+            .setTitle(`Учебный план "${selectedSubject}" не найден.`)
+            .setColor('#FF1867');
+            await interaction.reply({ embeds: [embed1], ephemeral: true});
+          }
+        }
+      }
+    });
+
+    client.on('interactionCreate', async (interaction) => { //Режим работы
+      if (!interaction.isButton()) return;
+    
+      if (interaction.customId === 'resim') {
+    
+        const resikOptions = resik.map((subject) => ({
+          label: subject,
+          value: subject.replace(/ /g, '_').toLowerCase(),
+        }));
+    
+        const subjectsRow = new MessageActionRow().addComponents(
+          new MessageSelectMenu()
+            .setCustomId('resimmm')
+            .setPlaceholder('ПРЕДМЕТ')
+            .addOptions(resikOptions),
+        );
+    
+        await interaction.reply({
+          content: 'Выберите нужную для вас информацию:',
+          components: [subjectsRow],
+          ephemeral: true
+        });
+      } 
+    })
+
+    client.on('interactionCreate', async (interaction) => {//Режим работы
+      if (interaction.isSelectMenu()) {
+        if (interaction.customId === 'resimmm') {
+          const selectedSubject = interaction.values[0];
+              const foundPlan = await resiki.findOne({ name: selectedSubject });
+    
+          if (foundPlan) {
+            const embed = new MessageEmbed()
+              .setTitle(`Режим работы "${selectedSubject}":`)
+              .setDescription(foundPlan.info)
+              .setColor('#FF1867');
+    
+            await interaction.reply({ embeds: [embed], ephemeral: true});
+          } else {
+            const embed1 = new MessageEmbed()
+            .setTitle(`Режим работы "${selectedSubject}" не найден.`)
+            .setColor('#FF1867');
+            await interaction.reply({ embeds: [embed1], ephemeral: true});
+          }
+        }
+      }
     });
 
 
@@ -256,11 +481,6 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
       .setLabel('ДОБАВИТЬ РАСПИСАНИЕ')
       .setStyle('SUCCESS');
   
-    const But1 = new MessageButton()
-      .setCustomId('editras')
-      .setLabel('ИЗМЕНИТЬ РАСПИСАНИЕ')
-      .setStyle('SUCCESS');
-  
     const But2 = new MessageButton()
       .setCustomId('yvedomly')
       .setLabel('УВЕДОМЛЕНИЕ')
@@ -270,150 +490,250 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
       .setCustomId('plank')
       .setLabel('УЧЕБНЫЙ ПЛАН')
       .setStyle('SUCCESS');
+
+    const But4 = new MessageButton()
+      .setCustomId('reshim')
+      .setLabel('РЕЖИМ РАБОТЫ')
+      .setStyle('SUCCESS');
   
     const com1 = new MessageActionRow()
-      .addComponents(But, But1, But2, But3);
+      .addComponents(But, But2, But3, But4);
   
     const mes = new MessageEmbed()
       .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
-      .setDescription('')
+      .setDescription('Нажмите **ДОБАВИТЬ РАСПИСАНИЕ** что бы добавить расписание.\nНажмите **УВЕДОМЛЕНИЕ** что бы прислать изменение расписания/оправить ведомление.\nНажмите **УЧЕБНЫЙ ПЛАН** что отредактировать/добавить учебный план')
       .setColor('#DE5EB4');
-
-    // const message = await channel.send({ embeds: [mes], components: [com1] });
+ 
+   // const message = await channel.send({ embeds: [mes], components: [com1] });
 
   
-      // client.on('interactionCreate', async (interaction) => { //добавть расписание
-      //   if (!interaction.isButton()) return;
+   const dataMap = new Map();
+
+   client.on('interactionCreate', async (interaction) => { //РАСПИСАНИЕ
+     if (!interaction.isButton() && !interaction.isSelectMenu()) return;
+   
+     const user = interaction.user;
+     if (!dataMap.has(user.id)) {
+       dataMap.set(user.id, {});
+     }
+   
+     if (interaction.customId === 'dobras') {
+       const grypy = await gryppa.find({}, 'Name');
+       const prepodi = await prepod.find({}, 'Name');
+   
+       const grypaOptions = grypy.map((grypa) => ({
+         label: grypa.Name,
+         value: grypa.Name,
+       }));
+   
+       const prepodOptions = prepodi.map((prepod) => ({
+         label: prepod.Name,
+         value: prepod.Name,
+       }));
+   
+       const numberOptions = Array.from({ length: 7 }, (_, i) => ({
+         label: `${i + 1}`,
+         value: `${i + 1}`,
+       }));
+   
+       const subjectsOptions = subjectsArray.map((subject) => ({
+         label: subject,
+         value: subject.replace(/ /g, '_').toLowerCase(),
+       }));
+   
+       const dateOptions = getFutureDates(7).map((date) => ({
+         label: date,
+         value: date,
+       }));
+   
+       const grypaRow = new MessageActionRow().addComponents(
+         new MessageSelectMenu()
+           .setCustomId('classADD')
+           .setPlaceholder('ГРУППА')
+           .addOptions(grypaOptions),
+       );
+   
+       const numberRow = new MessageActionRow().addComponents(
+         new MessageSelectMenu()
+           .setCustomId('numberADD')
+           .setPlaceholder('НОМЕР ПАРЫ')
+           .addOptions(numberOptions),
+       );
+   
+       const subjectsRow = new MessageActionRow().addComponents(
+         new MessageSelectMenu()
+           .setCustomId('subjectiiADD')
+           .setPlaceholder('ПРЕДМЕТ')
+           .addOptions(subjectsOptions),
+       );
+   
+       const prepodRow = new MessageActionRow().addComponents(
+         new MessageSelectMenu()
+           .setCustomId('prepodiiADD')
+           .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
+           .addOptions(prepodOptions),
+       );
+   
+       const dateRow = new MessageActionRow().addComponents(
+         new MessageSelectMenu()
+           .setCustomId('dateADD')
+           .setPlaceholder('ДАТА')
+           .addOptions(dateOptions),
+       );
+   
+       await interaction.reply({
+         content: 'Выберите группу, номер пары, предмет, преподавателя и дату:',
+         components: [grypaRow, numberRow, dateRow, subjectsRow, prepodRow],
+         ephemeral: true,
+       });
+     }
+   });
+   
+   async function saveToDatabase(user, interaction) { //РАСПИСАНИЕ
+    const userData = dataMap.get(user.id);
+    if (
+      userData.groop &&
+      userData.nomer &&
+      userData.name &&
+      userData.prepod &&
+      userData.date
+    ) {
+      // Check if a record with the same data exists
+      const existingRed = await red.findOne({
+        groop: userData.groop,
+        nomer: userData.nomer,
+        name: userData.name,
+        prepod: userData.prepod,
+        date: userData.date,
+      });
+  
+      if (existingRed) {
+        await red.updateOne(
+          {
+            groop: userData.groop,
+            nomer: userData.nomer,
+            name: userData.name,
+            prepod: userData.prepod,
+            date: userData.date,
+          },
+          { /* Твой сматфон не звонил бы, чёрт возьми, еслиб прогрмаммисты были бы нормальными людьми) */ }
+        );
+      } else {
+        const newRed = new red({
+          groop: userData.groop,
+          nomer: userData.nomer,
+          name: userData.name,
+          prepod: userData.prepod,
+          date: userData.date,
+        });
+        await newRed.save();
+      }
+  
+      dataMap.delete(user.id);
+  
+      await interaction.editReply({
+        content: `*Расписание успешно добавленно для группы ${userData.groop}, можете создавать новое добавление **<3***`,
+        ephemeral: true,
+    })
+    }
+  }
+   
+   client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
+     if (!interaction.isSelectMenu()) return;
+   
+     const user = interaction.user;
+     const userData = dataMap.get(user.id);
+     if (interaction.customId === 'classADD') {
+       const selectedGroup = interaction.values[0];
+       dataMap.get(user.id).groop = selectedGroup;
+       const popp = userData.iterek
+       if(popp) {
+      const iterek = await interaction.editReply({
+        content: 'Группа успешно принята',
+        ephemeral: true,
+       })
+      } else {
+        const iterek = await interaction.reply({
+          content: 'Группа успешно принята',
+          ephemeral: true,
+         })
+       dataMap.get(user.id).iterek = iterek;
+      }
+     }else if (interaction.customId === 'numberADD') {
+             const selectedNumber = interaction.values[0];
+             console.log(`Выбран номер пары: ${selectedNumber}`);
+             dataMap.get(user.id).nomer = selectedNumber;
+             const popp = dataMap.get(user.id).intwek
+             if(popp) {
+            const iterek = await interaction.editReply({
+              content: 'Группа успешно принята',
+              ephemeral: true,
+             })
+            } else {
+              const iterek = await interaction.reply({
+                content: 'Группа успешно принята',
+                ephemeral: true,
+               })
+             dataMap.get(user.id).iterek = iterek;
+            }
+           } else if (interaction.customId === 'subjectiiADD') {
+             const selectedSubject = interaction.values[0];
+             console.log(`Выбран предмет: ${selectedSubject}`);
+             dataMap.get(user.id).name = selectedSubject;     
+             const popp = dataMap.get(user.id).intwek
+             if(popp) {
+            const iterek = await interaction.editReply({
+              content: 'Группа успешно принята',
+              ephemeral: true,
+             })
+             dataMap.get(user.id).iterek = iterek;
+            } else {
+              const iterek = await interaction.reply({
+                content: 'Группа успешно принята',
+                ephemeral: true,
+               })
+             dataMap.get(user.id).iterek = iterek;
+            }
+           } else if (interaction.customId === 'prepodiiADD') {
+             const selectedPrepod = interaction.values[0];
+             console.log(`Выбран преподаватель: ${selectedPrepod}`);
+             dataMap.get(user.id).prepod = selectedPrepod;
+             const popp = userData.iterek
+             if(popp) {
+            const iterek = await interaction.editReply({
+              content: 'Группа успешно принята',
+              ephemeral: true,
+             })
+             dataMap.get(user.id).iterek = iterek;
+            } else {
+              const iterek = await interaction.reply({
+                content: 'Группа успешно принята',
+                ephemeral: true,
+               })
+             dataMap.get(user.id).iterek = iterek;
+            }
+           } else if (interaction.customId === 'dateADD') {
+             const selectedDate = interaction.values[0];
+             const popp = userData.iterek
+             if(popp) {
+            const iterek = await interaction.editReply({
+              content: 'Группа успешно принята',
+              ephemeral: true,
+             })
+            } else {
+              const iterek = await interaction.reply({
+                content: 'Группа успешно принята',
+                ephemeral: true,
+               })
+             dataMap.get(user.id).iterek = iterek;
+            }
+             console.log(`Выбрана дата: ${selectedDate}`);
+             dataMap.get(user.id).date = selectedDate;
+   }
+   
+     saveToDatabase(user, interaction);
+   });
       
-      //   if (interaction.customId === 'dobras') {
-      //     const grypy = await gryppa.find({}, 'Name');
-      //     const prepodi = await prepod.find({}, 'Name');
-      
-      //     const grypaOptions = grypy.map((grypa) => ({
-      //       label: grypa.Name,
-      //       value: grypa.Name,
-      //     }));
-      
-      //     const prepodOptions = prepodi.map((prepod) => ({
-      //       label: prepod.Name,
-      //       value: prepod.Name,
-      //     }));
-      
-      //     const numberOptions = Array.from({ length: 7 }, (_, i) => ({
-      //       label: `${i + 1}`,
-      //       value: `${i + 1}`,
-      //     }));
-      
-      //     const subjectsOptions = subjectsArray.map((subject) => ({
-      //       label: subject,
-      //       value: subject.replace(/ /g, '_').toLowerCase(),
-      //     }));
-      
-      //     const dateOptions = getFutureDates(7).map((date) => ({
-      //       label: date,
-      //       value: date,
-      //     }));
-      
-      //     const grypaRow = new MessageActionRow().addComponents(
-      //       new MessageSelectMenu()
-      //         .setCustomId('classADD')
-      //         .setPlaceholder('ГРУППА')
-      //         .addOptions(grypaOptions),
-      //     );
-      
-      //     const numberRow = new MessageActionRow().addComponents(
-      //       new MessageSelectMenu()
-      //         .setCustomId('numberADD')
-      //         .setPlaceholder('НОМЕР ПАРЫ')
-      //         .addOptions(numberOptions),
-      //     );
-      
-      //     const subjectsRow = new MessageActionRow().addComponents(
-      //       new MessageSelectMenu()
-      //         .setCustomId('subjectADD')
-      //         .setPlaceholder('ПРЕДМЕТ')
-      //         .addOptions(subjectsOptions),
-      //     );
-      
-      //     const prepodRow = new MessageActionRow().addComponents(
-      //       new MessageSelectMenu()
-      //         .setCustomId('prepodADD')
-      //         .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
-      //         .addOptions(prepodOptions),
-      //     );
-      
-      //     const dateRow = new MessageActionRow().addComponents(
-      //       new MessageSelectMenu()
-      //         .setCustomId('dateADD')
-      //         .setPlaceholder('ДАТА')
-      //         .addOptions(dateOptions),
-      //     );
-      
-      //     await interaction.reply({
-      //       content: 'Выберите группу, номер пары, предмет, преподавателя и дату:',
-      //       components: [grypaRow, numberRow, dateRow, subjectsRow, prepodRow],
-      //       ephemeral: true
-      //     });
-      //   } 
-      // })      
-      
-      // client.on('interactionCreate', async (interaction) => { //добавть расписание обработка ответоа
-      //   if (!interaction.isSelectMenu()) return;
-      
-      //   const user = interaction.user;
-      
-      //   if (interaction.customId === 'classADD') {
-      //     const selectedGroup = interaction.values[0];
-      //     console.log(`Выбрана группа: ${selectedGroup}`);
-      //     user.tempData = { groop: selectedGroup };
-      
-      //     await interaction.reply({ content: `Выбрана группа: ${selectedGroup}`, ephemeral: true });
-      //   } else if (interaction.customId === 'numberADD') {
-      //     const selectedNumber = interaction.values[0];
-      //     console.log(`Выбран номер пары: ${selectedNumber}`);
-      //     user.tempData.nomer = selectedNumber;
-      
-      //     await interaction.reply({ content: `Выбран номер пары: ${selectedNumber}`, ephemeral: true });
-      //   } else if (interaction.customId === 'subjectADD') {
-      //     const selectedSubject = interaction.values[0];
-      //     console.log(`Выбран предмет: ${selectedSubject}`);
-      //     user.tempData.name = selectedSubject;
-      
-      //     await interaction.reply({ content: `Выбран предмет: ${selectedSubject}`, ephemeral: true });
-      //   } else if (interaction.customId === 'prepodADD') {
-      //     const selectedPrepod = interaction.values[0];
-      //     console.log(`Выбран преподаватель: ${selectedPrepod}`);
-      //     user.tempData.prepod = selectedPrepod;
-      
-      //     await interaction.reply({ content: `Выбран преподаватель: ${selectedPrepod}`, ephemeral: true });
-      //   } else if (interaction.customId === 'dateADD') {
-      //     const selectedDate = interaction.values[0];
-      //     console.log(`Выбрана дата: ${selectedDate}`);
-      //     user.tempData.date = selectedDate;
-      
-      //     const existingRed = await red.findOne({
-      //       groop: user.tempData.groop,
-      //       nomer: user.tempData.nomer,
-      //       name: user.tempData.name,
-      //       prepod: user.tempData.prepod,
-      //       date: user.tempData.date,
-      //     });
-      
-      //     if (existingRed) {
-      //     } else {
-      //       const newRed = new red({
-      //         groop: user.tempData.groop,
-      //         nomer: user.tempData.nomer,
-      //         name: user.tempData.name,
-      //         prepod: user.tempData.prepod,
-      //         date: user.tempData.date,
-      //       });
-      //       await newRed.save();
-      //     }
-      
-      //     await interaction.reply({ content: `Выбрана дата: ${selectedDate}`, ephemeral: true });
-      //   }
-      // });
 
       client.on('interactionCreate', async (interaction) => { //учебный план
         if (!interaction.isButton()) return;
@@ -440,7 +760,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         } 
       })
 
-      client.on('interactionCreate', async (interaction) => {
+      client.on('interactionCreate', async (interaction) => { //учебный план
         if (interaction.customId === 'subjectADD') {
           const selectedSubject = interaction.values[0];
       
@@ -460,12 +780,12 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         }
       });
       
-      client.on('interactionCreate', async (interaction) => {
+      client.on('interactionCreate', async (interaction) => { ///учебный план
         if (!interaction.isModalSubmit()) return;
       
         if (interaction.customId === 'HitMod') {
           const info = interaction.fields.getTextInputValue('HitId');
-          const selectedSubject = interaction.client.selectedSubject; // Получите selectedSubject из контекста взаимодействия
+          const selectedSubject = interaction.client.selectedSubject;
       
           const existingPlan = await plane.findOne({ name: selectedSubject });
       
@@ -475,6 +795,145 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
             await interaction.update('Успешно сохранено');
           } else {
             const newPlan = new plane({
+              name: selectedSubject,
+              info: info,
+            });
+            await newPlan.save();
+            await interaction.update('Успешно сохранено');
+          }
+        }
+      });
+
+      client.on('interactionCreate', async (interaction) => { //Уведомление
+        if (!interaction.isButton()) return;
+      
+        if (interaction.customId === 'yvedomly') {
+
+          const grypy = await gryppa.find({}, 'Name');
+
+          const grypaOptions = grypy.map((grypa) => ({
+            label: grypa.Name,
+            value: grypa.Name,
+          }));
+      
+          const grypaRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('viborgroop')
+              .setPlaceholder('ГРУППА')
+              .addOptions(grypaOptions),
+          );
+      
+          await interaction.reply({
+            content: 'Выберите нужную группу для оповещения:',
+            components: [grypaRow],
+            ephemeral: true
+          });
+        } 
+      })
+
+      client.on('interactionCreate', async (interaction) => {//Уведомление
+        if (interaction.customId === 'viborgroop') {
+          const selectedSubject = interaction.values[0];
+      
+          interaction.client.selectedSubject = selectedSubject;
+      
+          const modal = new Modal()
+            .setCustomId('yvedMod')
+            .setTitle(`Уведомить группу ${selectedSubject}:`);
+          const favoriteColorInput = new TextInputComponent()
+            .setCustomId('yvedId')
+            .setLabel("Введите уведомление для группы")
+            .setStyle('PARAGRAPH');
+          const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
+          modal.addComponents(firstActionRow);
+          await interaction.showModal(modal);
+        }
+      });
+      
+      client.on('interactionCreate', async (interaction) => {//Уведомление
+        if (!interaction.isModalSubmit()) return;
+        
+        if (interaction.customId === 'yvedMod') {
+          const notificationText = interaction.fields.getTextInputValue('yvedId');
+      
+          const selectedGroup = await gryppa.findOne({ Name: interaction.client.selectedSubject });
+      
+          if (selectedGroup) {
+            const channelString = selectedGroup.yvedomlenie; 
+            const channelId = channelString.replace(/\D/g, ''); 
+            const channel = interaction.guild.channels.cache.get(channelId);
+          
+            if (channel) {
+              await channel.send(notificationText);
+              interaction.reply({ content: 'Уведомление успешно отправлено.', ephemeral: true });
+            } else {
+              interaction.reply({ content: 'Канал не найден.', ephemeral: true });
+            }
+          } else {
+            interaction.reply({ content: 'Ошибка: не найдена группа.', ephemeral: true });
+          }
+        }
+      });
+
+      client.on('interactionCreate', async (interaction) => { //учебный план
+        if (!interaction.isButton()) return;
+      
+        if (interaction.customId === 'reshim') {
+      
+          const plansOptions = resik.map((subject) => ({
+            label: subject,
+            value: subject.replace(/ /g, '_').toLowerCase(),
+          }));
+      
+          const subjectsRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('resikADD')
+              .setPlaceholder('ПРЕДМЕТ')
+              .addOptions(plansOptions),
+          );
+      
+          await interaction.reply({
+            content: 'Выберите желаемый план:',
+            components: [subjectsRow],
+            ephemeral: true
+          });
+        } 
+      })
+
+      client.on('interactionCreate', async (interaction) => { //учебный план
+        if (interaction.customId === 'resikADD') {
+          const selectedSubject = interaction.values[0];
+      
+          interaction.client.selectedSubject = selectedSubject;
+      
+          const modal = new Modal()
+            .setCustomId('resikMod')
+            .setTitle(`Добавить/изменить информацию:`);
+          const favoriteColorInput = new TextInputComponent()
+            .setCustomId('resikId')
+            .setLabel("Введите информацию об выбранном пункте")
+            .setStyle('PARAGRAPH');
+          const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
+          modal.addComponents(firstActionRow);
+          await interaction.showModal(modal);
+        }
+      });
+      
+      client.on('interactionCreate', async (interaction) => { ///учебный план
+        if (!interaction.isModalSubmit()) return;
+      
+        if (interaction.customId === 'resikMod') {
+          const info = interaction.fields.getTextInputValue('resikId');
+          const selectedSubject = interaction.client.selectedSubject;
+      
+          const existingPlan = await resiki.findOne({ name: selectedSubject });
+      
+          if (existingPlan) {
+            existingPlan.info = info;
+            await existingPlan.save();
+            await interaction.update('Успешно сохранено');
+          } else {
+            const newPlan = new resiki({
               name: selectedSubject,
               info: info,
             });
@@ -768,6 +1227,8 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         await member.roles.add(klassyxID); //
        }
 
+      const ID = generateRandomId()
+
       const categorybuy = await guild.channels.create(NAME, { // Категория
         type: 'GUILD_CATEGORY',
         permissionOverwrites: [
@@ -806,6 +1267,32 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         ],
       });
 
+      const DS = await guild.channels.create('📒Домашнее Задание', { // Домашнее задание
+        type: 'GUILD_TEXT',
+        parent: categorybuy,
+        permissionOverwrites: [
+          {
+            id: guild.roles.everyone,
+            deny: [Permissions.FLAGS.VIEW_CHANNEL],
+          },
+          {
+            id: roleID,
+            allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.ATTACH_FILES],
+            deny: [Permissions.FLAGS.SEND_MESSAGES],
+          },
+          {
+            id: klassyxID,
+            allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.ATTACH_FILES, Permissions.FLAGS.SEND_MESSAGES],
+          },
+          {
+            id: starID, 
+            allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.ATTACH_FILES, Permissions.FLAGS.SEND_MESSAGES],
+          },
+        ],
+      });
+
+      buyChannel.send(`🚀Группа успешно созданна, **ID группы ${ID}**🚀.`);
+
       const Channel = await guild.channels.create('📨Чат', { // Чат
         type: 'GUILD_TEXT',
         parent: categorybuy,
@@ -836,22 +1323,16 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           {
             id: klassyxID,
             allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.ATTACH_FILES],
-            deny: [Permissions.FLAGS.SEND_MESSAGES],
-          },
-          {
-            id: starID, 
-            allow: [Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.ATTACH_FILES],
-            deny: [Permissions.FLAGS.SEND_MESSAGES],
           },
         ],
       });
 
        try {
- 
            const BD = await gryppa.findOne({ Name: NAME });
  
            if (BD) {
              BD.Name = NAME;
+             BD.IDis = ID;
              BD.RoleID = roleID;
              BD.Klassyxa = userId;
              BD.Starosta = starID;
@@ -870,6 +1351,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
            } else {
              const newRecord = new gryppa({
               Name: NAME,
+              IDis: ID,
               RoleID: roleID,
               Klassyxa: userId,
               Starosta: starID,
@@ -919,5 +1401,90 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     return dateOptions;
   }
 
+  client.on('messageCreate', async (message) => {
+    if (message.content.startsWith('!ученик')) {
+      const args = message.content.split(' ');
+      if (args.length !== 3) {
+        message.reply('Используйте команду следующим образом: !ученик <Discord ID ученика> <ID Вашей группы>');
+        return;
+      }
+  
+      const userID = args[1];
+      const idishka = args[2];
+  
+      try {
+        const user = await gryppa.findOne({ IDis: idishka });
+  
+        if (!user) {
+          message.reply('Группа не найдена, проверьте название');
+          return;
+        }
+  
+        const roleID = user.RoleID.replace(/<@&|>/g, '');
+        const guild = client.guilds.cache.get(GUILD_ID); 
+  
+        const member = await guild.members.fetch(userID);
+  
+        if (member.roles.cache.has(prepodID)) {
+          await member.roles.add(roleID);
+          await message.reply(`Ученик <@${userID}> успешно добавлен в ваш класс!`);
+        } else {
+          message.reply('В доступе отказано. :robot:');
+        }
+  
+      } catch (error) {
+        console.error(error);
+        message.reply('Произошла ошибка при выполнении команды.');
+      }
+    }
+
+    if (message.content.startsWith('!староста')) {
+      const args = message.content.split(' ');
+      if (args.length !== 3) {
+        message.reply('Используйте команду следующим образом: !староста <Discord ID старосты> <ID Вашей группы>');
+        return;
+      }
+  
+      const userID = args[1];
+      const idishka = args[2];
+  
+      try {
+        const user = await gryppa.findOne({ IDis: idishka });
+  
+        if (!user) {
+          message.reply('Группа не найдена, проверьте название');
+          return;
+        }
+  
+        const roleID = user.Starosta.replace(/<@&|>/g, '');
+        console.log(user.Starosta)
+        const guild = client.guilds.cache.get(GUILD_ID); 
+  
+        const member = await guild.members.fetch(userID);
+  
+        if (member.roles.cache.has(prepodID)) {
+          await member.roles.add(roleID);
+          await message.reply(`Староста <@${userID}> успешна добавлена в ваш класс!`);
+        } else {
+          message.reply('В доступе отказано. :robot:');
+        }
+  
+      } catch (error) {
+        console.error(error);
+        message.reply('Произошла ошибка при выполнении команды.');
+      }
+    }
+
+  });
+
+  function generateRandomId(length = 5) {
+    const characters = '0123456789';
+    let randomId = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      randomId += characters.charAt(randomIndex);
+    }
+    return randomId;
+  }
 
 client.login(token);
