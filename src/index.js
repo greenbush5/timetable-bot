@@ -11,8 +11,8 @@ const {
   MessageEmbed,
   Modal,
   TextInputComponent,
-  GatewayIntentBits
-
+  GatewayIntentBits,
+  MessageSelectMenu  
 } = require('discord.js');
 
 const client = new Discord.Client({
@@ -35,6 +35,7 @@ const GUILD_ID = '1166726020481679400';
 const adminID = '1166726152262537238';
 const groopID = '1166759868519157821';
 const glavId = `1166818230749380711`;
+const redId = `1166838868033683566`;
 const guild = '1166726020481679400';
 const kitIDholy = '1135861027146309716';
 
@@ -96,11 +97,43 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
   
   const redak = mongoose.model('redakt', redakSchema);
 
+  const stateSchema = new mongoose.Schema({
+    satats: {
+        type: String,
+      },
+    sprav: {
+      type: String,
+    },
+    prop: {
+      type: String,
+    },
+  });
+  
+  const state = mongoose.model('state', stateSchema);
+
+  const raspSchema = new mongoose.Schema({
+    groop: {
+        type: String,
+      },
+    nomer: {
+      type: String,
+    },
+    name: {
+      type: String,
+    },
+    prepod: {
+      type: String,
+    },
+  });
+  
+  const red = mongoose.model('red', raspSchema);
+
   client.on('ready', () => {
     console.log(`ЮХХХУ СВИСТАТЬ ВСЕХ НА ВЕРХ <3 ||Я реально работаю(наверное)!`);
     sendControlADM()
     sendControlPREPOD()
     sendControlGLAV()
+   // sendControlREDACK()
   });
 
   async function sendControlGLAV() {
@@ -173,6 +206,68 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
 
 
   }
+
+  // async function sendControlREDACK() {
+  //   const channel = await client.channels.fetch(redId);
+  
+  //   const But = new MessageButton()
+  //     .setCustomId('dobras')
+  //     .setLabel('ДОБАВИТЬ РАСПИСАНИЕ')
+  //     .setStyle('SUCCESS');
+  
+  //   const But1 = new MessageButton()
+  //     .setCustomId('editras')
+  //     .setLabel('ИЗМЕНИТЬ РАСПИСАНИЕ')
+  //     .setStyle('SUCCESS');
+  
+  //   const But2 = new MessageButton()
+  //     .setCustomId('yvedomly')
+  //     .setLabel('УВЕДОМЛЕНИЕ')
+  //     .setStyle('SUCCESS');
+  
+  //   const com1 = new MessageActionRow()
+  //     .addComponents(But, But1, But2);
+  
+  //   const mes = new MessageEmbed()
+  //     .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
+  //     .setDescription('')
+  //     .setColor('#DE5EB4');
+  
+  //   client.on('interactionCreate', async (interaction) => {
+  //     if (!interaction.isButton()) return;
+  
+  //     if (interaction.customId === 'dobras') {
+  //       const grypy = await gryppa.find({}, 'Name');
+  //       const prepodi = await prepod.find({}, 'Name');
+  
+  //       const grypaOptions = grypy.map((grypa) => ({
+  //         label: grypa.Name,
+  //         value: grypa.Name,
+  //       }));
+  
+  //       const prepodOptions = prepodi.map((prepod) => ({
+  //         label: prepod.Name,
+  //         value: prepod.Name,
+  //       }));
+  
+  //       const grypaRow = new MessageActionRow().addComponents(
+  //         new MessageSelectMenu()
+  //           .setCustomId('classADD')
+  //           .setPlaceholder('ГРУППА')
+  //           .addOptions(grypaOptions),
+  //       );
+  
+  //       const prepodRow = new MessageActionRow().addComponents(
+  //         new MessageSelectMenu()
+  //           .setCustomId('prepodADD')
+  //           .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
+  //           .addOptions(prepodOptions),
+  //       );
+  
+  //       await interaction.reply({ content: 'Выберите группу или преподавателя:', components: [grypaRow, prepodRow] });
+  //     }
+  //   });
+  // }
 
   async function sendControlADM() {
    // const channel = await client.channels.fetch(channelAKK);
