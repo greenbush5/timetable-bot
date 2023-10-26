@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "CommonJS",
+		"strict": true,
+		"outDir": "build",
+		"sourceMap": false,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+
+		"baseUrl": ".",
+		"paths": {
+			"@client": ["./src/Client/index"],
+			"@functions": ["./src/Client/Functions"],
+			"@sharedtypes": ["./src/Client/SharedTypes"],
+			"@interfaces": ["./src/Interfaces/index"],
+			"@interfaces/*": ["./src/Interfaces/*"],
+			"@services": ["./src/Services"],
+			"@config": ["./src/Config"]
+		}
+	},
+
+	"ts-node": {
+		"swc": false,
+		"require": ["tsconfig-paths/register"]
+	}
+}
