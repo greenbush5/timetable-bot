@@ -41,6 +41,34 @@ const kitIDholy = '1135861027146309716';
 
 const roleIdPrepod = '1166745752278671370';
 
+const subjectsArray = [
+  'Английский Язык',
+  'Биология',
+  'Бизнес-аналитика',
+  'Бухгалтерский учет',
+  'Веб-программирование',
+  'География',
+  'Доп. занятие',
+  'Информатика',
+  'Информационные технологии',
+  'История',
+  'ИСРПО',
+  'Литература',
+  'Математика',
+  'Математическое моделирование',
+  'ОБЖ',
+  'ОЕЭДП',
+  'Правовое обеспечение профессиональной деятельности',
+  'Психология общения',
+  'Русский Язык',
+  'Технология разработки программного обеспечения',
+  'Техническое оснащение торговых организаций и охрана труда',
+  'Теория электрических цепей',
+  'Физика',
+  'Физическая культура',
+  'Элементы высшей математики',
+];
+
 
 mongoose.connect(databaseUrl, { useNewUrlParser: true })
   .then(() => console.log('MongoDB запущен'))
@@ -124,6 +152,9 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     prepod: {
       type: String,
     },
+    date: {
+      type: String,
+    },
   });
   
   const red = mongoose.model('red', raspSchema);
@@ -133,7 +164,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     sendControlADM()
     sendControlPREPOD()
     sendControlGLAV()
-   // sendControlREDACK()
+    sendControlREDACK()
   });
 
   async function sendControlGLAV() {
@@ -207,67 +238,172 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
 
   }
 
-  // async function sendControlREDACK() {
-  //   const channel = await client.channels.fetch(redId);
+  async function sendControlREDACK() {
+    const channel = await client.channels.fetch(redId);
+
   
-  //   const But = new MessageButton()
-  //     .setCustomId('dobras')
-  //     .setLabel('ДОБАВИТЬ РАСПИСАНИЕ')
-  //     .setStyle('SUCCESS');
+    const But = new MessageButton()
+      .setCustomId('dobras')
+      .setLabel('ДОБАВИТЬ РАСПИСАНИЕ')
+      .setStyle('SUCCESS');
   
-  //   const But1 = new MessageButton()
-  //     .setCustomId('editras')
-  //     .setLabel('ИЗМЕНИТЬ РАСПИСАНИЕ')
-  //     .setStyle('SUCCESS');
+    const But1 = new MessageButton()
+      .setCustomId('editras')
+      .setLabel('ИЗМЕНИТЬ РАСПИСАНИЕ')
+      .setStyle('SUCCESS');
   
-  //   const But2 = new MessageButton()
-  //     .setCustomId('yvedomly')
-  //     .setLabel('УВЕДОМЛЕНИЕ')
-  //     .setStyle('SUCCESS');
+    const But2 = new MessageButton()
+      .setCustomId('yvedomly')
+      .setLabel('УВЕДОМЛЕНИЕ')
+      .setStyle('SUCCESS');
   
-  //   const com1 = new MessageActionRow()
-  //     .addComponents(But, But1, But2);
+    const com1 = new MessageActionRow()
+      .addComponents(But, But1, But2);
   
-  //   const mes = new MessageEmbed()
-  //     .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
-  //     .setDescription('')
-  //     .setColor('#DE5EB4');
+    const mes = new MessageEmbed()
+      .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
+      .setDescription('')
+      .setColor('#DE5EB4');
   
-  //   client.on('interactionCreate', async (interaction) => {
-  //     if (!interaction.isButton()) return;
-  
-  //     if (interaction.customId === 'dobras') {
-  //       const grypy = await gryppa.find({}, 'Name');
-  //       const prepodi = await prepod.find({}, 'Name');
-  
-  //       const grypaOptions = grypy.map((grypa) => ({
-  //         label: grypa.Name,
-  //         value: grypa.Name,
-  //       }));
-  
-  //       const prepodOptions = prepodi.map((prepod) => ({
-  //         label: prepod.Name,
-  //         value: prepod.Name,
-  //       }));
-  
-  //       const grypaRow = new MessageActionRow().addComponents(
-  //         new MessageSelectMenu()
-  //           .setCustomId('classADD')
-  //           .setPlaceholder('ГРУППА')
-  //           .addOptions(grypaOptions),
-  //       );
-  
-  //       const prepodRow = new MessageActionRow().addComponents(
-  //         new MessageSelectMenu()
-  //           .setCustomId('prepodADD')
-  //           .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
-  //           .addOptions(prepodOptions),
-  //       );
-  
-  //       await interaction.reply({ content: 'Выберите группу или преподавателя:', components: [grypaRow, prepodRow] });
-  //     }
-  //   });
-  // }
+      client.on('interactionCreate', async (interaction) => {
+        if (!interaction.isButton()) return;
+      
+        if (interaction.customId === 'dobras') {
+          const grypy = await gryppa.find({}, 'Name');
+          const prepodi = await prepod.find({}, 'Name');
+      
+          const grypaOptions = grypy.map((grypa) => ({
+            label: grypa.Name,
+            value: grypa.Name,
+          }));
+      
+          const prepodOptions = prepodi.map((prepod) => ({
+            label: prepod.Name,
+            value: prepod.Name,
+          }));
+      
+          const numberOptions = Array.from({ length: 7 }, (_, i) => ({
+            label: `${i + 1}`,
+            value: `${i + 1}`,
+          }));
+      
+          const subjectsOptions = subjectsArray.map((subject) => ({
+            label: subject,
+            value: subject.replace(/ /g, '_').toLowerCase(),
+          }));
+      
+          const dateOptions = getFutureDates(7).map((date) => ({
+            label: date,
+            value: date,
+          }));
+      
+          const grypaRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('classADD')
+              .setPlaceholder('ГРУППА')
+              .addOptions(grypaOptions),
+          );
+      
+          const numberRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('numberADD')
+              .setPlaceholder('НОМЕР ПАРЫ')
+              .addOptions(numberOptions),
+          );
+      
+          const subjectsRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('subjectADD')
+              .setPlaceholder('ПРЕДМЕТ')
+              .addOptions(subjectsOptions),
+          );
+      
+          const prepodRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('prepodADD')
+              .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
+              .addOptions(prepodOptions),
+          );
+      
+          const dateRow = new MessageActionRow().addComponents(
+            new MessageSelectMenu()
+              .setCustomId('dateADD')
+              .setPlaceholder('ДАТА')
+              .addOptions(dateOptions),
+          );
+      
+          await interaction.reply({
+            content: 'Выберите группу, номер пары, предмет, преподавателя и дату:',
+            components: [grypaRow, numberRow, subjectsRow, prepodRow, dateRow],
+            ephemeral: true
+          });
+        }
+      });
+
+      client.on('interactionCreate', async (interaction) => {
+        if (!interaction.isSelectMenu()) return;
+      
+        const user = interaction.user;
+      
+        if (interaction.customId === 'classADD') {
+          const selectedGroup = interaction.values[0];
+          user.tempData = { groop: selectedGroup, timetable: [] };
+          console.log(`Выбрана группа: ${selectedGroup}`);
+      
+          // Отправляем уведомление пользователю
+          await interaction.reply({ content: `Выбрана группа: ${selectedGroup}`, ephemeral: true });
+        } else if (interaction.customId === 'numberADD') {
+          const selectedNumber = interaction.values[0];
+          user.tempData.nomer = selectedNumber;
+          console.log(`Выбран номер пары: ${selectedNumber}`);
+      
+          // Отправляем уведомление пользователю
+          await interaction.reply({ content: `Выбран номер пары: ${selectedNumber}`, ephemeral: true });
+        } else if (interaction.customId === 'subjectADD') {
+          const selectedSubject = interaction.values[0];
+          user.tempData.name = selectedSubject;
+          console.log(`Выбран предмет: ${selectedSubject}`);
+      
+          // Отправляем уведомление пользователю
+          await interaction.reply({ content: `Выбран предмет: ${selectedSubject}`, ephemeral: true });
+        } else if (interaction.customId === 'prepodADD') {
+          const selectedPrepod = interaction.values[0];
+          user.tempData.prepod = selectedPrepod;
+          console.log(`Выбран преподаватель: ${selectedPrepod}`);
+      
+          // Отправляем уведомление пользователю
+          await interaction.reply({ content: `Выбран преподаватель: ${selectedPrepod}`, ephemeral: true });
+        } else if (interaction.customId === 'dateADD') {
+          const selectedDate = interaction.values[0];
+          console.log(`Выбрана дата: ${selectedDate}`);
+      
+          // Проверяем, существует ли запись для этой группы и номера пары
+          const existingEntry = user.tempData.timetable.find(
+            (entry) => entry.nomer === user.tempData.nomer && entry.date === selectedDate
+          );
+      
+          if (existingEntry) {
+            // Если запись существует, обновляем данные
+            existingEntry.name = user.tempData.name;
+            existingEntry.prepod = user.tempData.prepod;
+          } else {
+            // Если записи нет, создаем новую запись
+            user.tempData.timetable.push({
+              nomer: user.tempData.nomer,
+              name: user.tempData.name,
+              prepod: user.tempData.prepod,
+              date: selectedDate,
+            });
+          }
+      
+          // Отправляем уведомление пользователю
+          await interaction.reply({ content: `Выбрана дата: ${selectedDate}`, ephemeral: true });
+        }
+      });
+      
+      
+
+  }
 
   async function sendControlADM() {
    // const channel = await client.channels.fetch(channelAKK);
@@ -687,6 +823,21 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
  
    }
 
+   function getFutureDates(numDays) {
+    const dateOptions = [];
+    const today = new Date();
+  
+    for (let i = 0; i < numDays; i++) {
+      const futureDate = new Date(today);
+      futureDate.setDate(today.getDate() + i);
+      const year = futureDate.getFullYear();
+      const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+      const day = String(futureDate.getDate()).padStart(2, '0');
+      dateOptions.push(`${day}:${month}:${year}`);
+    }
+  
+    return dateOptions;
+  }
 
 
 client.login(token);
