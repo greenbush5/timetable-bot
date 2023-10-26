@@ -16,7 +16,7 @@ export default {
 			existingPlan.info = info;
 
 			await existingPlan.save();
-			await interaction.update('Успешно сохранено');
+			await interaction.update('Успешно сохранено!');
 		} else {
 			const newPlan = new plan({
 				name: selectedSubject,
@@ -24,7 +24,7 @@ export default {
 			});
 
 			await newPlan.save();
-			await interaction.update('Успешно сохранено');
+			await interaction.update('Успешно сохранено!');
 		}
 	}
 } as InteractionModule<ModalSubmitInteraction>;

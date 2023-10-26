@@ -9,11 +9,11 @@ export default {
 		
 		const modal = new Modal()
 			.setCustomId('podavaMod')
-			.setTitle(`Добавить/изменить раздел:`);
+			.setTitle('Добавить/изменить раздел:');
 		
 		const favoriteColorInput = new TextInputComponent()
 			.setCustomId('podavaId')
-			.setLabel("Введите информацию нужную информацию") // TODO
+			.setLabel('Введите информацию нужную информацию') // TODO: ???
 			.setStyle('PARAGRAPH');
 		
 		const firstActionRow = new MessageActionRow<TextInputComponent>()

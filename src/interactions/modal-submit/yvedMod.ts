@@ -20,12 +20,12 @@ export default {
 			
 			if (channel && channel.isText()) {
 				await channel.send(notificationText);
-				interaction.reply({ content: 'Уведомление успешно отправлено.', ephemeral: true });
+				interaction.reply({ content: 'Уведомление успешно отправлено!', ephemeral: true });
 			} else {
 				interaction.reply({ content: 'Канал не найден.', ephemeral: true });
 			}
 		} else {
-			interaction.reply({ content: 'Ошибка: не найдена группа.', ephemeral: true });
+			interaction.reply({ content: 'Группа не найдена.', ephemeral: true });
 		}
 	}
 } as InteractionModule<ModalSubmitInteraction>;

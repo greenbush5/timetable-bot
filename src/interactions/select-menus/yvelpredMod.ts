@@ -13,7 +13,7 @@ export default {
 
 		const favoriteColorInput = new TextInputComponent()
 			.setCustomId('podavaId')
-			.setLabel("Введите информацию нужную информацию")
+			.setLabel("Введите информацию нужную информацию") // TODO: ???
 			.setStyle('PARAGRAPH');
 
 		const firstActionRow = new MessageActionRow<TextInputComponent>()
