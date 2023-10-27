@@ -5,7 +5,7 @@
 	"main": "build/index.js",
 	"private": true,
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc && npx tsc-alias",
 		"dev": "ts-node src/index.ts",
 		"prod": "node ."
 	},
@@ -22,9 +22,11 @@
 	"homepage": "https://github.com/greenbush5/timetable-bot#readme",
 	"dependencies": {
 		"discord.js": "^13.16.0",
-		"mongoose": "^7.6.3"
+		"mongoose": "^7.6.3",
+		"tsconfig-paths": "^4.2.0"
 	},
 	"devDependencies": {
-		"ts-node": "^10.9.1"
+		"ts-node": "^10.9.1",
+		"tsc-alias": "^1.8.8"
 	}
 }

@@ -1,7 +1,7 @@
 import { ModalSubmitInteraction } from 'discord.js';
 
-import { InteractionModule } from 'src/interfaces';
-import { podava } from 'src/models';
+import { InteractionModule } from '@interfaces';
+import { podava } from '@models';
 
 export default {
 	async execute({ client, interaction }) {

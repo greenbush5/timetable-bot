@@ -1,6 +1,6 @@
-import { podava } from 'src/data';
+import { podava } from '@data';
 
-import { InteractionModule } from 'src/interfaces';
+import { InteractionModule } from '@interfaces';
 import { MessageActionRow, MessageSelectMenu, ButtonInteraction } from 'discord.js';
 
 export default {

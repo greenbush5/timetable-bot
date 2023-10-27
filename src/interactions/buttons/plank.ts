@@ -1,6 +1,6 @@
-import { plans } from 'src/data';
+import { plans } from '@data';
 
-import { InteractionModule } from '../../interfaces';
+import { InteractionModule } from '@interfaces';
 import { MessageActionRow, MessageSelectMenu, ButtonInteraction } from 'discord.js';
 
 export default {

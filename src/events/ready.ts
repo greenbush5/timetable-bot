@@ -1,14 +1,21 @@
-import { Event } from '../interfaces';
+import { Event } from '@interfaces';
 import ExtendedClient from 'src/ExtendedClient';
+
+import { controlAdmin, controlPrepod, controlGlav, controlRedak, controlRegular } from './controlFunctions';
 
 export default {
 	name: 'ready',
 	once: true,
 	
-	execute(client: ExtendedClient) {
+	async execute(client: ExtendedClient) {
 		console.log(`ЮХХХУ СВИСТАТЬ ВСЕХ НА ВЕРХ <3 ||Я реально работаю(наверное)!`);
 
-		// TODO: я хз что тут должно быть
-		client.user!.setActivity('хз');
+		// await controlAdmin(client);
+		// await controlPrepod(client);
+		// await controlGlav(client);
+		// await controlRedak(client);
+		// await controlRegular(client);
+		
+		client.user!.setActivity('Стою на защите ваших оценок');
 	}
 } as Event;

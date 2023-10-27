@@ -1,6 +1,6 @@
-import { gryp } from 'src/models';
+import { gryp } from '@models';
 
-import { InteractionModule } from 'src/interfaces';
+import { InteractionModule } from '@interfaces';
 import { MessageActionRow, MessageSelectMenu, ButtonInteraction } from 'discord.js';
 
 export default {

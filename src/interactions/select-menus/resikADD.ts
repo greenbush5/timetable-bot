@@ -1,4 +1,4 @@
-import { InteractionModule } from 'src/interfaces';
+import { InteractionModule } from '@interfaces';
 import { MessageActionRow, Modal, TextInputComponent, SelectMenuInteraction } from 'discord.js';
 
 export default {

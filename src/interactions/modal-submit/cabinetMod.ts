@@ -1,7 +1,8 @@
-import { InteractionModule } from 'src/interfaces';
 import { ModalSubmitInteraction } from 'discord.js';
 
-const red = require(`../../models/raspSchema`);
+import { InteractionModule } from '@interfaces';
+import { rasp } from '@models';
+
 const dataMap = new Map();
 
 export default {
@@ -12,7 +13,7 @@ export default {
 
 		dataMap.get(user.id).class = info;
 		
-		const existingRed = await red.findOne({
+		const existingRed = await rasp.findOne({
 			groop: userData.groop,
 			nomer: userData.nomer,
 			name: userData.name,
@@ -22,7 +23,7 @@ export default {
 		});
 		
 		if (existingRed) {
-			await red.updateOne(
+			await rasp.updateOne(
 				{
 					groop: userData.groop,
 					nomer: userData.nomer,
@@ -34,7 +35,7 @@ export default {
 				{ /* Твой сматфон не звонил бы, чёрт возьми, еслиб прогрмаммисты были бы нормальными людьми) */ }
 			);
 		} else {
-			const newRed = new red({
+			const newRed = new rasp({
 				groop: userData.groop,
 				nomer: userData.nomer,
 				name: userData.name,

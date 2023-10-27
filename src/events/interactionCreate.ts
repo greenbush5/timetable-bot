@@ -1,7 +1,11 @@
 import { Interaction, ButtonInteraction, SelectMenuInteraction, ModalSubmitInteraction } from 'discord.js';
-import { Event, InteractionModule } from '../interfaces';
+import { Event, InteractionModule } from '@interfaces';
 
 import ExtendedClient from 'src/ExtendedClient';
+import path from 'path';
+
+const formatPath = (category: 'buttons' | 'modal-submit' | 'select-menus', fileName: string) =>
+	path.resolve(__dirname, '..', 'interactions', category, fileName);
 
 export default {
 	name: 'interactionCreate',
@@ -18,7 +22,9 @@ export default {
 		
 		if (isButton) {
 			try {
-				const button: InteractionModule<ButtonInteraction> = await import(`../../interactions/buttons/${customId}`);
+				const modulePath = formatPath('buttons', customId);
+				const button: InteractionModule<ButtonInteraction> = (await import(modulePath)).default;
+
 				button.execute({ client, interaction });
 			} catch (error) {
 				console.error(error);
@@ -30,7 +36,9 @@ export default {
 			}
 		} else if (isSelectMenu) {
 			try {
-				const selectMenu: InteractionModule<SelectMenuInteraction> = await import(`../../interactions/select-menus/${customId}`);
+				const modulePath = formatPath('select-menus', customId);
+				const selectMenu: InteractionModule<SelectMenuInteraction> = (await import(modulePath)).default;
+				
 				selectMenu.execute({ client, interaction });
 			} catch (error) {
 				console.error(error);
@@ -42,7 +50,9 @@ export default {
 			}
 		} else if (isModalSubmit) {
 			try {
-				const modalSubmit: InteractionModule<ModalSubmitInteraction> = await import(`../../interactions/modal-submit/${customId}`);
+				const modulePath = formatPath('modal-submit', customId);
+				const modalSubmit: InteractionModule<ModalSubmitInteraction> = (await import(modulePath)).default;
+				
 				modalSubmit.execute({ client, interaction });
 			} catch (error) {
 				console.error(error);

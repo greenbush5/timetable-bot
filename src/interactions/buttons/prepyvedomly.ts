@@ -1,6 +1,6 @@
-import { prepod } from 'src/models';
+import { prepod } from '@models';
 
-import { InteractionModule } from 'src/interfaces';
+import { InteractionModule } from '@interfaces';
 import { MessageActionRow, MessageSelectMenu, ButtonInteraction } from 'discord.js';
 
 export default {

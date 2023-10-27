@@ -1,7 +1,7 @@
 import { ModalSubmitInteraction } from 'discord.js';
 
-import { InteractionModule } from 'src/interfaces';
-import { plan } from 'src/models';
+import { InteractionModule } from '@interfaces';
+import { plan } from '@models';
 
 export default {
 	async execute({ client, interaction }) {

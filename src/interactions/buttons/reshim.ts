@@ -1,6 +1,6 @@
-import { resik } from 'src/data';
+import { resik } from '@data';
 
-import { InteractionModule } from 'src/interfaces';
+import { InteractionModule } from '@interfaces';
 import { MessageActionRow, MessageSelectMenu, ButtonInteraction } from 'discord.js';
 
 export default {
