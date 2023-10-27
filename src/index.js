@@ -286,37 +286,37 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
 
     const But = new MessageButton()
         .setCustomId('raspis')
-        .setLabel('РАСПИСАНИЕ')
+        .setLabel('Расписание')
         .setStyle('SUCCESS');
         
     const But1 = new MessageButton()
         .setCustomId('raspisPREP')
-        .setLabel('РАСПИСАНИЕ ПРЕП.')
+        .setLabel('Расписание преп.')
         .setStyle('SUCCESS');
 
     const But2 = new MessageButton()
         .setCustomId('plan')
-        .setLabel('УЧЕБНЫЙ ПЛАН')
+        .setLabel('Учебный план')
         .setStyle('SUCCESS');
 
     const Ton = new MessageButton()
         .setCustomId('resim')
-        .setLabel('РЕЖИМ РАБОТЫ')
+        .setLabel('Режим работы')
         .setStyle('PRIMARY');
 
     const Ton1 = new MessageButton()
         .setCustomId('podati')
-        .setLabel('ПОДАТЬ ЗАЯВЛЕНИЕ')
+        .setLabel('Подать заявление')
         .setStyle('PRIMARY');
 
     const Ton2 = new MessageButton()
         .setCustomId('ska4')
-        .setLabel('СКАЧАТЬ ЗАЯВЛЕНИЕ')
+        .setLabel('Скачать заявление')
         .setStyle('PRIMARY');
 
     const Xop = new MessageButton()
         .setCustomId('mayraspis')
-        .setLabel('МОЁ РАСПИСАНИЕ')
+        .setLabel('Моё расписание')
         .setStyle('DANGER');
   
     const com1 = new MessageActionRow()
@@ -327,10 +327,18 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
     
     const com3 = new MessageActionRow()
         .addComponents(Xop);
+      
+    const embedDescription = '- **Моё расписание**: получение своего расписание пар.' +
+      '\n\n- **Расписание**: получение расписания пар любой группы' +
+      '\n\n- **Расписание преп.**: получение расписания преподавателя' +
+      '\n\n- **Учебный план**: получение учебного плана для нужной вам специальности' +
+      '\n\n- **Режим работы**: получение расписания и контактной информации административных отделений (бухгалтерия, кафедра, медпункт и др.)' +
+      '\n\n- **Подать заявление**: получение информации о подаче заявлений, получении справок, перевыпуск пропусков и т.д.' +
+      '\n\n- **Скачать заявление**: получение формы заявлений или пояснительныйх записок';
   
     const mes = new MessageEmbed()
-        .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
-        .setDescription('Нажми на **МОЁ РАСПИСАНИЕ** Что бы получить ваше расписание пар.\nНажми на **РАСПИСАНИЕ** Что бы получить расписание пар любой группы.\nНажмите **РАСПИСАНИЕ ПРЕП.** Что быузнать расписание преподавателя.\nНажмите **УЧЕБНЫЙ ПЛАН** Что бы узнать учебный план для нужной вам специальности.\nНажмите на **РЕЖИМ РАБОТЫ** Что бы узнать расписание и контактную информацию административных отделений (бухгалтерия, кафедра, медпункт и тд.).\nНажимите **ПОДАТЬ ЗАЯВЛЕНИЕ** Что бы получить информацию о падаче заявлений, получении справок перевыпуск пропусков и т.д..\nНажмите **СКАЧАТЬ ЗАЯВЛЕНИЕ** Что бы получть форму заявлений или пояснительныйх записок:')
+        .setTitle('Выберите действие')
+        .setDescription(embedDescription)
         .setColor('#DE5EB4');
   
      // const message = await channel.send({ embeds: [mes], components: [com1, com2, com3] });
@@ -374,7 +382,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           );
     
           await interaction.reply({
-            content: 'Вы не зарегистрированы. Выберите вашу группу:',
+            content: 'Вы не зарегистрированы! Выберите вашу группу:',
             components: [grypaRow],
             ephemeral: true,
           });
@@ -388,23 +396,37 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         const user = await short.findOne({ DS: interaction.user.id });
     
         if (user) {
-          const schedule = await red.find({
-            groop: user.groop,
-            date: selectedDate,
-          });
+              const schedule = await red.find({
+                groop: user.groop,
+                date: selectedDate,
+              });
     
-          if (schedule.length > 0) {
-            const scheduleMessage = schedule.map((entry, index) => {
-              return `**Пара ${index + 1}**:\n📝Предмет: **${entry.name}**\n😎Преподаватель: **${entry.prepod}**\n🚪Кабинет: **${entry.kabin}**`;
-            }).join('\n');
-    
+              if (schedule.length > 0) {
+                const formatClass = (class_, index) => `## Пара ${index + 1}` +
+                  `\n- Предмет: **${class_.name}**` +
+                  `\n- Преподаватель: **${class_.prepod}**` +
+                  `\n- Кабинет: **\`${class_.kabin}\`**`;
+            
+            const formattedClasses = schedule
+              .map(formatClass)
+              .join('\n\n');
+            
+            const embed = new Embed()
+              .setTitle(`Расписание **${user.groop}** на **${selectedDate}**`)
+              .setDescription(formattedClasses)
+              .setColor('#69a1f5');
+            
             await interaction.reply({
-              content: `🌠**Расписание на ${selectedDate} для группы ${user.groop}:**🌠\n${scheduleMessage}`,
+              embeds: [embed],
               ephemeral: true,
             });
           } else {
+            const embed = new Embed()
+              .setTitle(`Расписание **${user.groop}** на **${selectedDate}** отсутствует`)
+              .setColor('#69a1f5');
+
             await interaction.reply({
-              content: `⛔На **${selectedDate}** для группы ${user.groop} **расписание отсутствует.**⛔`,
+              embeds: [embed],
               ephemeral: true,
             });
           }
@@ -423,7 +445,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           });
       
           await interaction.reply({
-            content: `Вы зарегистрированы с группой: ${selectedGroup}, что бы получить расписание повторите запрос.`,
+            content: `Вы зарегистрированы с группой: ${selectedGroup}. Повторите запрос, чтобы получить расписание.`,
             ephemeral: true,
           });
         }
@@ -443,7 +465,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         const subjectsRow = new MessageActionRow().addComponents(
           new MessageSelectMenu()
             .setCustomId('xzff')
-            .setPlaceholder('ПРЕДМЕТ')
+            .setPlaceholder('Предмет')
             .addOptions(plansOptions),
         );
     
@@ -491,7 +513,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         const subjectsRow = new MessageActionRow().addComponents(
           new MessageSelectMenu()
             .setCustomId('resimmm')
-            .setPlaceholder('ПРЕДМЕТ')
+            .setPlaceholder('Предмет')
             .addOptions(resikOptions),
         );
     
@@ -539,7 +561,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         const subjectsRow = new MessageActionRow().addComponents(
           new MessageSelectMenu()
             .setCustomId('qwere')
-            .setPlaceholder('ВЫБОР')
+            .setPlaceholder('Выбор')
             .addOptions(plansOptions),
         );
     
@@ -589,7 +611,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           const grypaRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('ADDrasp')
-              .setPlaceholder('ГРУППА')
+              .setPlaceholder('Группа')
               .addOptions(grypaOptions),
           );
     
@@ -616,7 +638,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           const dateRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('obwrasikADD')
-              .setPlaceholder('ДАТА')
+              .setPlaceholder('Дата')
               .addOptions(dateOptions),
           );
           await interaction.reply({
@@ -638,17 +660,31 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           });
     
           if (schedule.length > 0) {
-            const scheduleMessage = schedule.map((entry, index) => {
-              return `**Пара ${entry.nomer}**:\n📝Предмет: **${entry.name}**\n😎Преподаватель: **${entry.prepod}**\n🚪Кабинет: **${entry.kabin}**`;
-            }).join('\n');
-    
+            const formatClass = (class_, index) => `## Пара ${index + 1}` +
+              `\n- Предмет: **${class_.name}**` +
+              `\n- Преподаватель: **${class_.prepod}**` +
+              `\n- Кабинет: **\`${class_.kabin}\`**`;
+            
+            const formattedClasses = schedule
+              .map(formatClass)
+              .join('\n\n');
+            
+            const embed = new Embed()
+              .setTitle(`Расписание **${user.groop}** на **${selectedDate}**`)
+              .setDescription(formattedClasses)
+              .setColor('#69a1f5');
+            
             await interaction.reply({
-              content: `🌠**Расписание на ${selectedDate} для группы ${selectPred}:**🌠\n${scheduleMessage}`,
+              embeds: [embed],
               ephemeral: true,
             });
           } else {
+            const embed = new Embed()
+              .setTitle(`Расписание **${user.groop}** на **${selectedDate}** отсутствует`)
+              .setColor('#69a1f5');
+
             await interaction.reply({
-              content: `⛔На **${selectedDate}** для группы ${selectPred} **расписание отсутствует.**⛔`,
+              embeds: [embed],
               ephemeral: true,
             });
         }
@@ -670,7 +706,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           const grypaRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('prepodSEARCH')
-              .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
+              .setPlaceholder('Преподаватель')
               .addOptions(grypaOptions),
           );
     
@@ -697,7 +733,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           const dateRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('obwrasikSEARCH')
-              .setPlaceholder('ДАТА')
+              .setPlaceholder('Дата')
               .addOptions(dateOptions),
           );
           await interaction.reply({
@@ -719,17 +755,31 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
           });
     
           if (schedule.length > 0) {
-            const scheduleMessage = schedule.map((entry, index) => {
-              return `**Пара ${entry.nomer}**:\n💡Группа: **${entry.groop}**\n📝Предмет: **${entry.name}**\n🚪Кабинет: **${entry.kabin}**`;
-            }).join('\n');
-    
+            const formatClass = (class_, index) => `## Пара ${index + 1}` +
+              `\n- Предмет: **${class_.name}**` +
+              `\n- Преподаватель: **${class_.prepod}**` +
+              `\n- Кабинет: **\`${class_.kabin}\`**`;
+            
+            const formattedClasses = schedule
+              .map(formatClass)
+              .join('\n\n');
+            
+            const embed = new Embed()
+              .setTitle(`Расписание **${user.groop}** на **${selectedDate}**`)
+              .setDescription(formattedClasses)
+              .setColor('#69a1f5');
+            
             await interaction.reply({
-              content: `🌠**Расписание на ${selectedDate} для группы ${selectPred}:**🌠\n${scheduleMessage}`,
+              embeds: [embed],
               ephemeral: true,
             });
           } else {
+            const embed = new Embed()
+              .setTitle(`Расписание **${user.groop}** на **${selectedDate}** отсутствует`)
+              .setColor('#69a1f5');
+
             await interaction.reply({
-              content: `⛔На **${selectedDate}** для группы ${selectPred} **расписание отсутствует.**⛔`,
+              embeds: [embed],
               ephemeral: true,
             });
         }
@@ -749,7 +799,7 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
         const subjectsRow = new MessageActionRow().addComponents(
           new MessageSelectMenu()
             .setCustomId('ystan')
-            .setPlaceholder('ВЫБОР')
+            .setPlaceholder('Выбор')
             .addOptions(plansOptions),
         );
     
@@ -792,37 +842,37 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
   
     const But = new MessageButton()
       .setCustomId('dobras')
-      .setLabel('ДОБАВИТЬ РАСПИСАНИЕ')
+      .setLabel('Добавить расписание')
       .setStyle('SUCCESS');
   
     const But2 = new MessageButton()
       .setCustomId('yvedomly')
-      .setLabel('УВЕДОМЛЕНИЕ')
+      .setLabel('Уведомление')
       .setStyle('SUCCESS');
 
     const But6 = new MessageButton()
       .setCustomId('prepyvedomly')
-      .setLabel('УВЕДОМЛЕНИЕ ПРЕП.')
+      .setLabel('Уведомление преп.')
       .setStyle('SUCCESS');
 
     const But3 = new MessageButton()
       .setCustomId('plank')
-      .setLabel('УЧЕБНЫЙ ПЛАН')
+      .setLabel('Учебный план')
       .setStyle('SUCCESS');
 
     const But4 = new MessageButton()
       .setCustomId('reshim')
-      .setLabel('РЕЖИМ РАБОТЫ')
+      .setLabel('Режим работы')
       .setStyle('SUCCESS');
 
     const But5 = new MessageButton()
       .setCustomId('poddav')
-      .setLabel('ПОДАЧА ЗАЯВЛЕНИЙ')
+      .setLabel('Подача заявлений')
       .setStyle('SUCCESS');
 
     const But7 = new MessageButton()
       .setCustomId('skasred')
-      .setLabel('СКАЧАТЬ ЗАЯВЛЕНИЕ')
+      .setLabel('Скачать заявление')
       .setStyle('SUCCESS');
   
     const com1 = new MessageActionRow()
@@ -830,10 +880,14 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
 
     const com2 = new MessageActionRow()
       .addComponents(But3, But4, But5, But7);
+
+    const embedDescription = '- **Добавить расписание**: добавление расписания' +
+      '\- **Уведомление**: отправление уведомления (об изменении расписания и др.)' +
+      '\- **Учебный план**: редактирование/добавление учебного плана';
   
     const mes = new MessageEmbed()
-      .setTitle('ВЫБЕРИТЕ ДЕЙСТВТЕ:')
-      .setDescription('Нажмите **ДОБАВИТЬ РАСПИСАНИЕ** что бы добавить расписание.\nНажмите **УВЕДОМЛЕНИЕ** что бы прислать изменение расписания/оправить ведомление.\nНажмите **УЧЕБНЫЙ ПЛАН** что отредактировать/добавить учебный план')
+      .setTitle('Выберите действие')
+      .setDescription(embedDescription)
       .setColor('#DE5EB4');
  
    // const message = await channel.send({ embeds: [mes], components: [com1, com2] });
@@ -880,35 +934,35 @@ mongoose.connect(databaseUrl, { useNewUrlParser: true })
        const grypaRow = new MessageActionRow().addComponents(
          new MessageSelectMenu()
            .setCustomId('classADD')
-           .setPlaceholder('ГРУППА')
+           .setPlaceholder('Группа')
            .addOptions(grypaOptions),
        );
    
        const numberRow = new MessageActionRow().addComponents(
          new MessageSelectMenu()
            .setCustomId('numberADD')
-           .setPlaceholder('НОМЕР ПАРЫ')
+           .setPlaceholder('Номер пары')
            .addOptions(numberOptions),
        );
    
        const subjectsRow = new MessageActionRow().addComponents(
          new MessageSelectMenu()
            .setCustomId('subjectiiADD')
-           .setPlaceholder('ПРЕДМЕТ')
+           .setPlaceholder('Предмет')
            .addOptions(subjectsOptions),
        );
    
        const prepodRow = new MessageActionRow().addComponents(
          new MessageSelectMenu()
            .setCustomId('prepodiiADD')
-           .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
+           .setPlaceholder('Преподаватель')
            .addOptions(prepodOptions),
        );
    
        const dateRow = new MessageActionRow().addComponents(
          new MessageSelectMenu()
            .setCustomId('dateADD')
-           .setPlaceholder('ДАТА')
+           .setPlaceholder('Дата')
            .addOptions(dateOptions),
        );
    
@@ -958,12 +1012,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
       if(messages[user.id]) {
 				const message = messages[user.id]
      const iterek = await message.edit({
-       content: 'Группа успешно принята',
+       content: 'Группа успешно принята!',
        ephemeral: true,
       })
      } else {
        const iterek = await interaction.reply({
-         content: 'Группа успешно принята',
+         content: 'Группа успешно принята!',
          ephemeral: true,
         })
       messages[user.id] = iterek;
@@ -974,12 +1028,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             dataMap.get(user.id).nomer = selectedNumber;
             if(messages[user.id]) {
            const iterek = await interaction.editReply({
-             content: 'Группа успешно принята',
+             content: 'Группа успешно принята!',
              ephemeral: true,
             })
            } else {
              const iterek = await interaction.reply({
-               content: 'Группа успешно принята',
+               content: 'Группа успешно принята!',
                ephemeral: true,
               })
             messages[user.id] = iterek;
@@ -990,13 +1044,13 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             dataMap.get(user.id).name = selectedSubject;     
             if(messages[user.id]) {
            const iterek = await interaction.editReply({
-             content: 'Группа успешно принята',
+             content: 'Группа успешно принята!',
              ephemeral: true,
             })
             messages[user.id] = iterek;
            } else {
              const iterek = await interaction.reply({
-               content: 'Группа успешно принята',
+               content: 'Группа успешно принята!',
                ephemeral: true,
               })
             messages[user.id] = iterek;
@@ -1007,13 +1061,13 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             dataMap.get(user.id).prepod = selectedPrepod;
             if(messages[user.id]) {
            const iterek = await interaction.editReply({
-             content: 'Группа успешно принята',
+             content: 'Группа успешно принята!',
              ephemeral: true,
             })
             messages[user.id] = iterek;
            } else {
              const iterek = await interaction.reply({
-               content: 'Группа успешно принята',
+               content: 'Группа успешно принята!',
                ephemeral: true,
               })
             messages[user.id] = iterek;
@@ -1022,12 +1076,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             const selectedDate = interaction.values[0];
             if(messages[user.id]) {
            const iterek = await interaction.editReply({
-             content: 'Группа успешно принята',
+             content: 'Группа успешно принята!',
              ephemeral: true,
             })
            } else {
              const iterek = await interaction.reply({
-               content: 'Группа успешно принята',
+               content: 'Группа успешно принята!',
                ephemeral: true,
               })
             messages[user.id] = iterek;
@@ -1099,7 +1153,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
       dataMap.delete(user.id);
   
       await interaction.reply({
-        content: `*Расписание успешно добавленно для группы ${userData.groop}, можете создавать новое добавление **<3***`,
+        content: `*Расписание успешно добавленно для группы ${userData.groop}. Можете создавать новое добавление **<3***`,
         ephemeral: true,
     })
 
@@ -1120,7 +1174,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           const subjectsRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('subjectADD')
-              .setPlaceholder('ПРЕДМЕТ')
+              .setPlaceholder('Предмет')
               .addOptions(plansOptions),
           );
       
@@ -1191,7 +1245,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           const grypaRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('viborgroop')
-              .setPlaceholder('ГРУППА')
+              .setPlaceholder('Группа')
               .addOptions(grypaOptions),
           );
       
@@ -1237,12 +1291,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           
             if (channel) {
               await channel.send(notificationText);
-              interaction.reply({ content: 'Уведомление успешно отправлено.', ephemeral: true });
+              interaction.reply({ content: 'Уведомление успешно отправлено!', ephemeral: true });
             } else {
-              interaction.reply({ content: 'Канал не найден.', ephemeral: true });
+              interaction.reply({ content: 'Канал не найден!', ephemeral: true });
             }
           } else {
-            interaction.reply({ content: 'Ошибка: не найдена группа.', ephemeral: true });
+            interaction.reply({ content: 'Группа не найдена!', ephemeral: true });
           }
         }
       });
@@ -1260,7 +1314,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           const subjectsRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('resikADD')
-              .setPlaceholder('ПРЕДМЕТ')
+              .setPlaceholder('Предмет')
               .addOptions(plansOptions),
           );
       
@@ -1283,7 +1337,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             .setTitle(`Добавить/изменить информацию:`);
           const favoriteColorInput = new TextInputComponent()
             .setCustomId('resikId')
-            .setLabel("Введите информацию об выбранном пункте")
+            .setLabel("Введите информацию о выбранном пункте")
             .setStyle('PARAGRAPH');
           const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
           modal.addComponents(firstActionRow);
@@ -1303,14 +1357,14 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           if (existingPlan) {
             existingPlan.info = info;
             await existingPlan.save();
-            await interaction.update('Успешно сохранено');
+            await interaction.update('Успешно сохранено!');
           } else {
             const newPlan = new resiki({
               name: selectedSubject,
               info: info,
             });
             await newPlan.save();
-            await interaction.update('Успешно сохранено');
+            await interaction.update('Успешно сохранено!');
           }
         }
       });
@@ -1328,7 +1382,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           const subjectsRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('podavaADD')
-              .setPlaceholder('РАЗДЕЛ')
+              .setPlaceholder('Раздел')
               .addOptions(plansOptions),
           );
       
@@ -1371,14 +1425,14 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           if (existingPlan) {
             existingPlan.info = info;
             await existingPlan.save();
-            await interaction.update('Успешно сохранено');
+            await interaction.update('Успешно сохранено!');
           } else {
             const newPlan = new podanoo({
               name: selectedSubject,
               info: info,
             });
             await newPlan.save();
-            await interaction.update('Успешно сохранено');
+            await interaction.update('Успешно сохранено!');
           }
         }
       });
@@ -1398,7 +1452,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           const grypaRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('prepinfo')
-              .setPlaceholder('ПРЕПОДАВАТЕЛЬ')
+              .setPlaceholder('Преподаватель')
               .addOptions(grypaOptions),
           );
       
@@ -1421,7 +1475,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             .setTitle(`Уведомить ${selectedSubject}:`);
           const favoriteColorInput = new TextInputComponent()
             .setCustomId('prepinfoId')
-            .setLabel("Введите уведомление преподавателя")
+            .setLabel("Введите уведомление для выбранного преподавателя")
             .setStyle('PARAGRAPH');
           const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
           modal.addComponents(firstActionRow);
@@ -1444,12 +1498,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
 
             if (channel) {
               await channel.send(notificationText);
-              interaction.reply({ content: 'Уведомление успешно отправлено.', ephemeral: true });
+              interaction.reply({ content: 'Уведомление успешно отправлено!', ephemeral: true });
             } else {
-              interaction.reply({ content: 'Канал не найден.', ephemeral: true });
+              interaction.reply({ content: 'Канал не найден!', ephemeral: true });
             }
           } else {
-            interaction.reply({ content: 'Ошибка: не найдена группа.', ephemeral: true });
+            interaction.reply({ content: 'Группа не найдена!', ephemeral: true });
           }
         }
       });
@@ -1467,7 +1521,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           const subjectsRow = new MessageActionRow().addComponents(
             new MessageSelectMenu()
               .setCustomId('saivleniaADD')
-              .setPlaceholder('РАЗДЕЛ')
+              .setPlaceholder('Раздел')
               .addOptions(plansOptions),
           );
       
@@ -1490,7 +1544,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             .setTitle(`Добавить/изменить раздел:`);
           const favoriteColorInput = new TextInputComponent()
             .setCustomId('saivleniaId')
-            .setLabel("Передаставте ссылку на скачивание/информацию")
+            .setLabel("Предоставьте ссылки на информацию")
             .setStyle('PARAGRAPH');
           const firstActionRow = new MessageActionRow().addComponents(favoriteColorInput);
           modal.addComponents(firstActionRow);
@@ -1510,14 +1564,14 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           if (existingPlan) {
             existingPlan.info = info;
             await existingPlan.save();
-            await interaction.update('Успешно сохранено');
+            await interaction.update('Успешно сохранено!');
           } else {
             const newPlan = new skas({
               name: selectedSubject,
               info: info,
             });
             await newPlan.save();
-            await interaction.update('Успешно сохранено');
+            await interaction.update('Успешно сохранено!');
           }
         }
       });
@@ -1530,20 +1584,23 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
 
     const ip = new MessageButton()
         .setCustomId('prepod')
-        .setLabel('Добавить Преподователя')
+        .setLabel('Добавить преподователя')
         .setStyle('SUCCESS');
 
     const cont = new MessageButton()
         .setCustomId('redak')
-        .setLabel('Добавить Редактора')
+        .setLabel('Добавить редактора')
         .setStyle('SUCCESS');
 
     const com = new MessageActionRow()
         .addComponents(ip, cont);
 
+    const embedDescription = '- **Добавить преподователя**: добавление нового преподавателя' +
+      '\n\n- **Добавить редактора**: добавление пользователя на должность редактора (управление расписанием и т.д.)';
+
     const mes = new MessageEmbed()
-        .setTitle('ВЫБЕРИТЕ ДЕЙСТВИЕ:')
-        .setDescription('**Добавить Преподователя** - данная кнопка позваляет добавить нового преподавателя\n**Добавить Редактора** - данная роль позволяет управлять расписанием')
+        .setTitle('Выберите действие')
+        .setDescription(embedDescription)
         .setColor('#B82923');
 
       // const message = await control.send({ embeds: [mes], components: [com] });
@@ -1773,8 +1830,8 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
          .addComponents(ip);
  
      const mes = new MessageEmbed()
-         .setTitle('ВЫБЕРИТЕ ДЕЙСТВИЕ:')
-         .setDescription('**Создать группу** - эта кнопка создаст грппу класса')
+         .setTitle('Выберите действие')
+         .setDescription('**Создать группу** - создание группы класса')
          .setColor('#2710D1');
  
    //  const message = await control.send({ embeds: [mes], components: [com] });
@@ -1904,7 +1961,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
         ],
       });
 
-      buyChannel.send(`🚀Группа успешно созданна, **ID группы ${ID}**🚀.`);
+      buyChannel.send(`🚀 Группа успешно созданна! ID группы - **${ID}**. 🚀`);
 
       const Channel = await guild.channels.create('📨Чат', { // Чат
         type: 'GUILD_TEXT',
@@ -2008,15 +2065,15 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
  
      const cont = new MessageButton()
          .setCustomId('prepraspis')
-         .setLabel('МОЁ РАСПИСАНИЕ')
+         .setLabel('Моё расписание')
          .setStyle('SUCCESS');
  
      const com = new MessageActionRow()
          .addComponents(cont, ip);
  
      const mes = new MessageEmbed()
-         .setTitle('ВЫБЕРИТЕ ДЕЙСТВИЕ:')
-         .setDescription('')
+         .setTitle('Выберите действие')
+         .setDescription('') // ?????
          .setColor('#B82923');
  
       // const message = await control.send({ embeds: [mes], components: [com] });
@@ -2036,7 +2093,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
               const dateRow = new MessageActionRow().addComponents(
                 new MessageSelectMenu()
                   .setCustomId('teachshort')
-                  .setPlaceholder('ДАТА')
+                  .setPlaceholder('Дата')
                   .addOptions(dateOptions),
               );
               await interaction.reply({
@@ -2055,12 +2112,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
               const grypaRow = new MessageActionRow().addComponents(
                 new MessageSelectMenu()
                   .setCustomId('mayteach')
-                  .setPlaceholder('ГРУППА')
+                  .setPlaceholder('Группа')
                   .addOptions(grypaOptions),
               );
         
               await interaction.reply({
-                content: 'Вы не зарегистрированы. Выберите вашу фамилию:',
+                content: 'Вы не зарегистрированы! Выберите вашу фамилию:',
                 components: [grypaRow],
                 ephemeral: true,
               });
@@ -2081,17 +2138,31 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
               });
 
               if (schedule.length > 0) {
-                const scheduleMessage = schedule.map((entry, index) => {
-                  return `**Пара ${entry.nomer}**:\n💡Группа: **${entry.groop}**\n📝Предмет: **${entry.name}**\n🚪Кабинет: **${entry.kabin}**`;
-                }).join('\n');
-        
+                const formatClass = (class_, index) => `## Пара ${index + 1}` +
+                  `\n- Предмет: **${class_.name}**` +
+                  `\n- Преподаватель: **${class_.prepod}**` +
+                  `\n- Кабинет: **\`${class_.kabin}\`**`;
+                
+                const formattedClasses = schedule
+                  .map(formatClass)
+                  .join('\n\n');
+                
+                const embed = new Embed()
+                  .setTitle(`Расписание **${user.groop}** на **${selectedDate}**`)
+                  .setDescription(formattedClasses)
+                  .setColor('#69a1f5');
+                
                 await interaction.reply({
-                  content: `🌠**Расписание на ${selectedDate} для группы ${user.groop}:**🌠\n${scheduleMessage}`,
+                  embeds: [embed],
                   ephemeral: true,
                 });
               } else {
+                const embed = new Embed()
+                  .setTitle(`Расписание **${user.groop}** на **${selectedDate}** отсутствует`)
+                  .setColor('#69a1f5');
+
                 await interaction.reply({
-                  content: `⛔На **${selectedDate}** для группы ${user.groop} **расписание отсутствует.**⛔`,
+                  embeds: [embed],
                   ephemeral: true,
                 });
               }
@@ -2110,7 +2181,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
               });
           
               await interaction.reply({
-                content: `Вы зарегистрированы с фамилией: ${selectedGroup}, что бы получить расписание повторите запрос.`,
+                content: `Вы зарегистрированы с фамилией ${selectedGroup}. Повторите запрос чтобы получить расписание.`,
                 ephemeral: true,
               });
             }
@@ -2132,7 +2203,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
             const grypaRow = new MessageActionRow().addComponents(
               new MessageSelectMenu()
                 .setCustomId('yvelpred')
-                .setPlaceholder('ГРУППА')
+                .setPlaceholder('Группа')
                 .addOptions(grypaOptions),
             );
         
@@ -2178,12 +2249,12 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
   
               if (channel) {
                 await channel.send(notificationText);
-                interaction.reply({ content: 'Уведомление успешно отправлено.', ephemeral: true });
+                interaction.reply({ content: 'Уведомление успешно отправлено!', ephemeral: true });
               } else {
-                interaction.reply({ content: 'Канал не найден.', ephemeral: true });
+                interaction.reply({ content: 'Канал не найден!', ephemeral: true });
               }
             } else {
-              interaction.reply({ content: 'Ошибка: не найдена группа.', ephemeral: true });
+              interaction.reply({ content: 'Группа не найдена!', ephemeral: true });
             }
           }
         });
@@ -2223,7 +2294,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
         const user = await gryppa.findOne({ IDis: idishka });
   
         if (!user) {
-          message.reply('Группа не найдена, проверьте название');
+          message.reply('Группа не найдена! Проверьте название.');
           return;
         }
   
@@ -2236,7 +2307,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
           await member.roles.add(roleID);
           await message.reply(`Ученик <@${userID}> успешно добавлен в ваш класс!`);
         } else {
-          message.reply('В доступе отказано. :robot:');
+          message.reply('Отказано в доступе. :robot:');
         }
   
       } catch (error) {
