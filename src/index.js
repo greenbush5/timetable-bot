@@ -1584,7 +1584,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
 
     const ip = new MessageButton()
         .setCustomId('prepod')
-        .setLabel('Добавить преподователя')
+        .setLabel('Добавить преподавателя')
         .setStyle('SUCCESS');
 
     const cont = new MessageButton()
@@ -1595,7 +1595,7 @@ client.on('interactionCreate', async (interaction) => { // РАСПИСАНИЕ
     const com = new MessageActionRow()
         .addComponents(ip, cont);
 
-    const embedDescription = '- **Добавить преподователя**: добавление нового преподавателя' +
+    const embedDescription = '- **Добавить преподавателя**: добавление нового преподавателя' +
       '\n\n- **Добавить редактора**: добавление пользователя на должность редактора (управление расписанием и т.д.)';
 
     const mes = new MessageEmbed()
